@@ -32,32 +32,34 @@ https://godoc.org/gopkg.in/gomail.v1
 
 ## Example
 
-    package main
+```go
+package main
 
-    import (
-    	"gopkg.in/gomail.v1"
-    )
+import (
+	"gopkg.in/gomail.v1"
+)
 
-    func main() {
-    	msg := gomail.NewMessage()
-    	msg.SetHeader("From", "alex@example.com")
-    	msg.SetHeader("To", "bob@example.com", "cora@example.com")
-    	msg.SetAddressHeader("Cc", "dan@example.com", "Dan")
-    	msg.SetHeader("Subject", "Hello!")
-    	msg.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
+func main() {
+	msg := gomail.NewMessage()
+	msg.SetHeader("From", "alex@example.com")
+	msg.SetHeader("To", "bob@example.com", "cora@example.com")
+	msg.SetAddressHeader("Cc", "dan@example.com", "Dan")
+	msg.SetHeader("Subject", "Hello!")
+	msg.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
 
-    	f, err := gomail.OpenFile("/home/Alex/lolcat.jpg")
-    	if err != nil {
-    		panic(err)
-    	}
-    	msg.Attach(f)
+	f, err := gomail.OpenFile("/home/Alex/lolcat.jpg")
+	if err != nil {
+		panic(err)
+	}
+	msg.Attach(f)
 
-    	// Send the email to Bob, Cora and Dan
-    	mailer := gomail.NewMailer("smtp.example.com", "user", "123456", 25)
-    	if err := mailer.Send(msg); err != nil {
-    		panic(err)
-    	}
-    }
+	// Send the email to Bob, Cora and Dan
+	mailer := gomail.NewMailer("smtp.example.com", "user", "123456", 25)
+	if err := mailer.Send(msg); err != nil {
+		panic(err)
+	}
+}
+```
 
 
 ## Contact
