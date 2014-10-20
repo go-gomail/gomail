@@ -27,7 +27,7 @@ type MailerSetting func(m *Mailer)
 //	myFunc := func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 //		// Implement your email-sending function similar to smtp.SendMail
 //	}
-//	mailer := NewMailer("host", "username", "password", 25, SetSendMail(myFunc))
+//	mailer := gomail.NewMailer("host", "user", "pwd", 465, SetSendMail(myFunc))
 func SetSendMail(s SendMailFunc) MailerSetting {
 	return func(m *Mailer) {
 		m.send = s

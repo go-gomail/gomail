@@ -68,7 +68,7 @@ type MessageSetting func(msg *Message)
 //
 // Example:
 //
-//	msg := NewMessage(SetCharset("ISO-8859-1"))
+//	msg := gomail.NewMessage(SetCharset("ISO-8859-1"))
 func SetCharset(charset string) MessageSetting {
 	return func(msg *Message) {
 		msg.charset = charset
@@ -79,7 +79,7 @@ func SetCharset(charset string) MessageSetting {
 //
 // Example:
 //
-//	msg := NewMessage(SetEncoding(gomail.Base64))
+//	msg := gomail.NewMessage(SetEncoding(gomail.Base64))
 func SetEncoding(enc Encoding) MessageSetting {
 	return func(msg *Message) {
 		msg.encoding = enc
