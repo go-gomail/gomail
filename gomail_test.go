@@ -37,8 +37,8 @@ func TestMessage(t *testing.T) {
 		},
 		content: "From: =?UTF-8?Q?Se=C3=B1or_From?= <from@example.com>\r\n" +
 			"To: =?UTF-8?Q?Se=C3=B1or_To?= <to@example.com>, tobis@example.com\r\n" +
-			"X-Date: 25 Jun 14 17:46 UTC\r\n" +
-			"X-Date-2: 25 Jun 14 17:46 UTC\r\n" +
+			"X-Date: 25 Jun 14 17:46 +0000\r\n" +
+			"X-Date-2: 25 Jun 14 17:46 +0000\r\n" +
 			"X-Headers: Test, =?UTF-8?Q?Caf=C3=A9?=\r\n" +
 			"Subject: =?UTF-8?Q?=C2=A1Hola,_se=C3=B1or!?=\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -494,7 +494,7 @@ func stubSendMail(t *testing.T, bCount int, emails ...message) SendMailFunc {
 
 		got := string(msg)
 		wantMsg := string("Mime-Version: 1.0\r\n" +
-			"Date: 25 Jun 14 17:46 UTC\r\n" +
+			"Date: 25 Jun 14 17:46 +0000\r\n" +
 			want.content)
 		if bCount > 0 {
 			boundaries := getBoundaries(t, bCount, got)
