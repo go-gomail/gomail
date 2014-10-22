@@ -15,6 +15,7 @@ It requires Go 1.2 or newer.
  * Supports HTML and text templates
  * Attachments
  * Embedded images
+ * SSL/TLS support
  * Automatic encoding of special characters
  * Well-documented
  * High test coverage

@@ -3,18 +3,21 @@ package gomail
 import (
 	"crypto/tls"
 	"io"
+	"net"
 	"net/smtp"
 	"testing"
 )
 
 var (
-	testAddr   = "smtp.example.com:587"
-	testConfig = &tls.Config{InsecureSkipVerify: true}
-	testHost   = "smtp.example.com"
-	testAuth   = smtp.PlainAuth("", "user", "pwd", "smtp.example.com")
-	testFrom   = "from@example.com"
-	testTo     = []string{"to1@example.com", "to2@example.com"}
-	testBody   = "Test message"
+	testAddr    = "smtp.example.com:587"
+	testSSLAddr = "smtp.example.com:465"
+	testTLSConn = &tls.Conn{}
+	testConfig  = &tls.Config{InsecureSkipVerify: true}
+	testHost    = "smtp.example.com"
+	testAuth    = smtp.PlainAuth("", "user", "pwd", "smtp.example.com")
+	testFrom    = "from@example.com"
+	testTo      = []string{"to1@example.com", "to2@example.com"}
+	testBody    = "Test message"
 )
 
 const wantMsg = "To: to1@example.com, to2@example.com\r\n" +
@@ -43,10 +46,40 @@ func TestDefaultSendMail(t *testing.T) {
 	})
 }
 
+func TestSSLSendMail(t *testing.T) {
+	testSendMail(t, testSSLAddr, nil, []string{
+		"Extension AUTH",
+		"Auth",
+		"Mail " + testFrom,
+		"Rcpt " + testTo[0],
+		"Rcpt " + testTo[1],
+		"Data",
+		"Write message",
+		"Close writer",
+		"Quit",
+		"Close",
+	})
+}
+
 func TestTLSConfigSendMail(t *testing.T) {
 	testSendMail(t, testAddr, testConfig, []string{
 		"Extension STARTTLS",
 		"StartTLS",
+		"Extension AUTH",
+		"Auth",
+		"Mail " + testFrom,
+		"Rcpt " + testTo[0],
+		"Rcpt " + testTo[1],
+		"Data",
+		"Write message",
+		"Close writer",
+		"Quit",
+		"Close",
+	})
+}
+
+func TestTLSConfigSSLSendMail(t *testing.T) {
+	testSendMail(t, testSSLAddr, testConfig, []string{
 		"Extension AUTH",
 		"Auth",
 		"Mail " + testFrom,
@@ -149,6 +182,25 @@ func testSendMail(t *testing.T, addr string, config *tls.Config, want []string) 
 
 	initSMTP = func(addr string) (smtpClient, error) {
 		assertAddr(t, addr, testClient.addr)
+		return testClient, nil
+	}
+
+	initTLS = func(network, addr string, config *tls.Config) (*tls.Conn, error) {
+		if network != "tcp" {
+			t.Errorf("Invalid network, got %q, want tcp", network)
+		}
+		assertAddr(t, addr, testClient.addr)
+		assertConfig(t, config, testClient.config)
+		return testTLSConn, nil
+	}
+
+	newClient = func(conn net.Conn, host string) (smtpClient, error) {
+		if conn != testTLSConn {
+			t.Error("Invalid TLS connection used")
+		}
+		if host != testHost {
+			t.Errorf("Invalid host, got %q, want %q", host, testHost)
+		}
 		return testClient, nil
 	}
 

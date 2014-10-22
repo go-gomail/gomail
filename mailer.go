@@ -67,7 +67,7 @@ func NewMailer(host string, username string, password string, port int, settings
 //	gomail.NewCustomMailer("host:587", smtp.CRAMMD5Auth("username", "secret"))
 func NewCustomMailer(addr string, auth smtp.Auth, settings ...MailerSetting) *Mailer {
 	// Error is not handled here to preserve backward compatibility
-	host, _, _ := net.SplitHostPort(addr)
+	host, port, _ := net.SplitHostPort(addr)
 
 	m := &Mailer{
 		addr: addr,
@@ -83,7 +83,7 @@ func NewCustomMailer(addr string, auth smtp.Auth, settings ...MailerSetting) *Ma
 		m.config = &tls.Config{ServerName: host}
 	}
 	if m.send == nil {
-		m.send = m.getSendMailFunc()
+		m.send = m.getSendMailFunc(port == "465")
 	}
 
 	return m
