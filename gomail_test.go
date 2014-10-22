@@ -450,7 +450,7 @@ func TestBase64LineLength(t *testing.T) {
 
 func testMessage(t *testing.T, msg *Message, bCount int, emails ...message) {
 	now = stubNow
-	mailer := NewMailer("host", "username", "password", 25, SetSendMail(stubSendMail(t, bCount, emails...)))
+	mailer := NewMailer("host", "username", "password", 587, SetSendMail(stubSendMail(t, bCount, emails...)))
 
 	err := mailer.Send(msg)
 	if err != nil {
@@ -470,8 +470,8 @@ func stubSendMail(t *testing.T, bCount int, emails ...message) SendMailFunc {
 		}
 		want := emails[i]
 
-		if addr != "host:25" {
-			t.Fatalf("Invalid address, got %q, want host:25", addr)
+		if addr != "host:587" {
+			t.Fatalf("Invalid address, got %q, want host:587", addr)
 		}
 
 		if from != want.from {
@@ -592,7 +592,7 @@ func BenchmarkFull(b *testing.B) {
 		msg.Attach(CreateFile("benchmark.txt", []byte("Benchmark")))
 		msg.Embed(CreateFile("benchmark.jpg", []byte("Benchmark")))
 
-		mailer := NewMailer("host", "username", "password", 25, SetSendMail(emptyFunc))
+		mailer := NewMailer("host", "username", "password", 587, SetSendMail(emptyFunc))
 		if err := mailer.Send(msg); err != nil {
 			panic(err)
 		}

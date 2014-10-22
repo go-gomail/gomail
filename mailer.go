@@ -2,9 +2,11 @@ package gomail
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/mail"
 	"net/smtp"
 	"strings"
@@ -12,15 +14,17 @@ import (
 
 // A Mailer represents an SMTP server.
 type Mailer struct {
-	addr string
-	auth smtp.Auth
-	send SendMailFunc
+	addr   string
+	host   string
+	config *tls.Config
+	auth   smtp.Auth
+	send   SendMailFunc
 }
 
 // A MailerSetting can be used in a mailer constructor to configure it.
 type MailerSetting func(m *Mailer)
 
-// SetSendMail is an option to set the email-sending function of a mailer.
+// SetSendMail allows to set the email-sending function of a mailer.
 //
 // Example:
 //
@@ -31,6 +35,14 @@ type MailerSetting func(m *Mailer)
 func SetSendMail(s SendMailFunc) MailerSetting {
 	return func(m *Mailer) {
 		m.send = s
+	}
+}
+
+// SetTLSConfig allows to set the TLS configuration used to connect the SMTP
+// server.
+func SetTLSConfig(c *tls.Config) MailerSetting {
+	return func(m *Mailer) {
+		m.config = c
 	}
 }
 
@@ -52,22 +64,29 @@ func NewMailer(host string, username string, password string, port int, settings
 //
 // Example:
 //
-//	gomail.NewCustomMailer("host:25", smtp.CRAMMD5Auth("username", "secret"))
+//	gomail.NewCustomMailer("host:587", smtp.CRAMMD5Auth("username", "secret"))
 func NewCustomMailer(addr string, auth smtp.Auth, settings ...MailerSetting) *Mailer {
+	// Error is not handled here to preserve backward compatibility
+	host, _, _ := net.SplitHostPort(addr)
+
 	m := &Mailer{
 		addr: addr,
+		host: host,
 		auth: auth,
-		send: smtp.SendMail,
 	}
-	m.applySettings(settings)
 
-	return m
-}
-
-func (m *Mailer) applySettings(settings []MailerSetting) {
 	for _, s := range settings {
 		s(m)
 	}
+
+	if m.config == nil {
+		m.config = &tls.Config{ServerName: host}
+	}
+	if m.send == nil {
+		m.send = m.getSendMailFunc()
+	}
+
+	return m
 }
 
 // Send sends the emails to all the recipients of the message.

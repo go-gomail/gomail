@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Package gomail provides a simple interface to send emails.
+Gomail is a very simple and powerful package to send emails.
 
 It requires Go 1.2 or newer.
 
@@ -54,12 +54,26 @@ func main() {
 	msg.Attach(f)
 
 	// Send the email to Bob, Cora and Dan
-	mailer := gomail.NewMailer("smtp.example.com", "user", "123456", 25)
+	mailer := gomail.NewMailer("smtp.example.com", "user", "123456", 587)
 	if err := mailer.Send(msg); err != nil {
 		panic(err)
 	}
 }
 ```
+
+
+## FAQ
+
+### x509: certificate signed by unknown authority
+
+If you get this error it means the certificate used by the SMTP server is not
+considered valid by the client running Gomail. As a quick workaround you can
+bypass the verification of the server's certificate chain and host name by using
+`SetTLSConfig`:
+
+    mailer := gomail.NewMailer("smtp.example.com", "user", "123456", 587, gomail.SetTLSConfig(&tls.Config{InsecureSkipVerify: true}))
+
+Note, however, that this is insecure and should not be used in production.
 
 
 ## Contact
