@@ -97,7 +97,10 @@ func (m *Mailer) Send(msg *Message) error {
 	if err != nil {
 		return err
 	}
-	recipients, bcc := getRecipients(message)
+	recipients, bcc, err := getRecipients(message)
+	if err != nil {
+		return err
+	}
 
 	h := flattenHeader(message, "")
 	body, err := ioutil.ReadAll(message.Body)
@@ -148,32 +151,48 @@ func getFrom(msg *mail.Message) (string, error) {
 		}
 	}
 
-	return from, nil
+	return parseAddress(from)
 }
 
-func getRecipients(msg *mail.Message) (recipients, bcc []string) {
+func getRecipients(msg *mail.Message) (recipients, bcc []string, err error) {
 	for _, field := range []string{"Bcc", "To", "Cc"} {
 		if addresses, ok := msg.Header[field]; ok {
 			for _, addr := range addresses {
 				switch field {
 				case "Bcc":
-					bcc = addAdress(bcc, addr)
+					bcc, err = addAdress(bcc, addr)
 				default:
-					recipients = addAdress(recipients, addr)
+					recipients, err = addAdress(recipients, addr)
+				}
+				if err != nil {
+					return recipients, bcc, err
 				}
 			}
 		}
 	}
 
-	return recipients, bcc
+	return recipients, bcc, nil
 }
 
-func addAdress(list []string, addr string) []string {
+func addAdress(list []string, addr string) ([]string, error) {
+	addr, err := parseAddress(addr)
+	if err != nil {
+		return list, err
+	}
 	for _, a := range list {
 		if addr == a {
-			return list
+			return list, nil
 		}
 	}
 
-	return append(list, addr)
+	return append(list, addr), nil
+}
+
+func parseAddress(field string) (string, error) {
+	a, err := mail.ParseAddress(field)
+	if a == nil {
+		return "", err
+	}
+
+	return a.Address, err
 }

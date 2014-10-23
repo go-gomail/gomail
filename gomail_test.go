@@ -30,9 +30,9 @@ func TestMessage(t *testing.T) {
 	msg.SetBody("text/plain", "¡Hola, señor!")
 
 	want := message{
-		from: "=?UTF-8?Q?Se=C3=B1or_From?= <from@example.com>",
+		from: "from@example.com",
 		to: []string{
-			"=?UTF-8?Q?Se=C3=B1or_To?= <to@example.com>",
+			"to@example.com",
 			"tobis@example.com",
 		},
 		content: "From: =?UTF-8?Q?Se=C3=B1or_From?= <from@example.com>\r\n" +
