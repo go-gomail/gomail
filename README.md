@@ -4,7 +4,7 @@
 
 Gomail is a very simple and powerful package to send emails.
 
-It requires Go 1.2 or newer.
+It requires Go 1.3 or newer.
 
 
 ## Features
