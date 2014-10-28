@@ -95,6 +95,30 @@ func TestCustomMessage(t *testing.T) {
 	testMessage(t, msg, 0, want)
 }
 
+func TestUnencodedMessage(t *testing.T) {
+	msg := NewMessage(SetEncoding(Unencoded))
+	msg.SetHeaders(map[string][]string{
+		"From":    {"from@example.com"},
+		"To":      {"to@example.com"},
+		"Subject": {"Café"},
+	})
+	msg.SetBody("text/html", "¡Hola, señor!")
+
+	want := message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Subject: =?UTF-8?Q?Caf=C3=A9?=\r\n" +
+			"Content-Type: text/html; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: 8bit\r\n" +
+			"\r\n" +
+			"¡Hola, señor!",
+	}
+
+	testMessage(t, msg, 0, want)
+}
+
 func TestRecipients(t *testing.T) {
 	msg := NewMessage()
 	msg.SetHeaders(map[string][]string{

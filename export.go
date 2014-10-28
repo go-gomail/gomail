@@ -29,11 +29,7 @@ func (msg *Message) Export() *mail.Message {
 	for _, part := range msg.parts {
 		h := make(map[string][]string)
 		h["Content-Type"] = []string{part.contentType + "; charset=" + msg.charset}
-		if msg.encoding == Base64 {
-			h["Content-Transfer-Encoding"] = []string{string(Base64)}
-		} else {
-			h["Content-Transfer-Encoding"] = []string{string(QuotedPrintable)}
-		}
+		h["Content-Transfer-Encoding"] = []string{string(msg.encoding)}
 
 		w.write(h, part.body.Bytes(), msg.encoding)
 	}
@@ -166,6 +162,8 @@ func (w *messageWriter) writeBody(body []byte, enc Encoding) {
 		writer := base64.NewEncoder(base64.StdEncoding, newBase64LineWriter(subWriter))
 		writer.Write(body)
 		writer.Close()
+	} else if enc == Unencoded {
+		subWriter.Write(body)
 	} else {
 		writer := quotedprintable.NewEncoder(newQpLineWriter(subWriter))
 		writer.Write(body)
