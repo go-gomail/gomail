@@ -41,8 +41,6 @@ func NewMessage(settings ...MessageSetting) *Message {
 		encoding: QuotedPrintable,
 	}
 
-	msg.applySettings(settings)
-
 	var e quotedprintable.Encoding
 	if msg.encoding == Base64 {
 		e = quotedprintable.B
@@ -50,6 +48,8 @@ func NewMessage(settings ...MessageSetting) *Message {
 		e = quotedprintable.Q
 	}
 	msg.hEncoder = e.NewHeaderEncoder(msg.charset)
+
+	msg.applySettings(settings)
 
 	return msg
 }
