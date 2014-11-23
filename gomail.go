@@ -32,6 +32,21 @@ type part struct {
 	body        *bytes.Buffer
 }
 
+func (msg *Message) getHeaderEncoder() *quotedprintable.HeaderEncoder {
+	if msg.hEncoder != nil {
+		return msg.hEncoder
+	}
+
+	var e quotedprintable.Encoding
+	if msg.encoding == Base64 {
+		e = quotedprintable.B
+	} else {
+		e = quotedprintable.Q
+	}
+
+	return e.NewHeaderEncoder(msg.charset)
+}
+
 // NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
 // by default.
 func NewMessage(settings ...MessageSetting) *Message {
@@ -43,13 +58,7 @@ func NewMessage(settings ...MessageSetting) *Message {
 
 	msg.applySettings(settings)
 
-	var e quotedprintable.Encoding
-	if msg.encoding == Base64 {
-		e = quotedprintable.B
-	} else {
-		e = quotedprintable.Q
-	}
-	msg.hEncoder = e.NewHeaderEncoder(msg.charset)
+	msg.hEncoder = msg.getHeaderEncoder()
 
 	return msg
 }
@@ -109,7 +118,7 @@ func (msg *Message) SetHeader(field string, value ...string) {
 }
 
 func (msg *Message) encodeHeader(value string) string {
-	return msg.hEncoder.Encode(value)
+	return msg.getHeaderEncoder().Encode(value)
 }
 
 // SetHeaders sets the message headers.
