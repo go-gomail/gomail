@@ -336,7 +336,8 @@ func TestEmbedded(t *testing.T) {
 	msg := NewMessage()
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
-	msg.Embed(CreateFile("image.jpg", []byte("Content")))
+	msg.Embed(CreateFile("image1.jpg", []byte("Content 1")))
+	msg.Embed(CreateFile("image2.jpg", []byte("Content 2")))
 	msg.SetBody("text/plain", "Test")
 
 	want := message{
@@ -352,12 +353,19 @@ func TestEmbedded(t *testing.T) {
 			"\r\n" +
 			"Test\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: image/jpeg; name=\"image.jpg\"\r\n" +
-			"Content-Disposition: inline; filename=\"image.jpg\"\r\n" +
-			"Content-ID: <image.jpg>\r\n" +
+			"Content-Type: image/jpeg; name=\"image1.jpg\"\r\n" +
+			"Content-Disposition: inline; filename=\"image1.jpg\"\r\n" +
+			"Content-ID: <image1.jpg>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content 1")) + "\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: image/jpeg; name=\"image2.jpg\"\r\n" +
+			"Content-Disposition: inline; filename=\"image2.jpg\"\r\n" +
+			"Content-ID: <image2.jpg>\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content 2")) + "\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 

@@ -262,7 +262,7 @@ func (msg *Message) Embed(image ...*File) {
 	if msg.embedded == nil {
 		msg.embedded = image
 	} else {
-		msg.embedded = append(msg.attachments, image...)
+		msg.embedded = append(msg.embedded, image...)
 	}
 }
 
