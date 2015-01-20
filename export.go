@@ -174,10 +174,11 @@ func (w *messageWriter) export() *mail.Message {
 	return &mail.Message{Header: w.header, Body: w.buf}
 }
 
-// As defined in RFC 5322, 2.1.1.
-const maxLineLen = 78
+// As required by RFC 2045, 6.7. (page 21) for quoted-printable, and
+// RFC 2045, 6.8. (page 25) for base64.
+const maxLineLen = 76
 
-// base64LineWriter limits text encoded in base64 to 78 characters per line
+// base64LineWriter limits text encoded in base64 to 76 characters per line
 type base64LineWriter struct {
 	w       io.Writer
 	lineLen int
@@ -203,7 +204,7 @@ func (w *base64LineWriter) Write(p []byte) (int, error) {
 	return n + len(p), nil
 }
 
-// qpLineWriter limits text encoded in quoted-printable to 78 characters per
+// qpLineWriter limits text encoded in quoted-printable to 76 characters per
 // line
 type qpLineWriter struct {
 	w       io.Writer
