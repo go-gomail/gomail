@@ -432,13 +432,13 @@ func TestQpLineLength(t *testing.T) {
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
 	msg.SetBody("text/plain",
-		strings.Repeat("0", 79)+"\r\n"+
-			strings.Repeat("0", 78)+"à\r\n"+
-			strings.Repeat("0", 77)+"à\r\n"+
+		strings.Repeat("0", 77)+"\r\n"+
 			strings.Repeat("0", 76)+"à\r\n"+
 			strings.Repeat("0", 75)+"à\r\n"+
-			strings.Repeat("0", 78)+"\r\n"+
-			strings.Repeat("0", 79)+"\n")
+			strings.Repeat("0", 74)+"à\r\n"+
+			strings.Repeat("0", 73)+"à\r\n"+
+			strings.Repeat("0", 76)+"\r\n"+
+			strings.Repeat("0", 77)+"\n")
 
 	want := message{
 		from: "from@example.com",
@@ -448,13 +448,13 @@ func TestQpLineLength(t *testing.T) {
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
 			"Content-Transfer-Encoding: quoted-printable\r\n" +
 			"\r\n" +
-			strings.Repeat("0", 78) + "=\r\n0\r\n" +
-			strings.Repeat("0", 78) + "=\r\n=C3=A0\r\n" +
-			strings.Repeat("0", 77) + "=\r\n=C3=A0\r\n" +
+			strings.Repeat("0", 76) + "=\r\n0\r\n" +
 			strings.Repeat("0", 76) + "=\r\n=C3=A0\r\n" +
-			strings.Repeat("0", 75) + "=C3=\r\n=A0\r\n" +
-			strings.Repeat("0", 78) + "\r\n" +
-			strings.Repeat("0", 78) + "=\r\n0\n",
+			strings.Repeat("0", 75) + "=\r\n=C3=A0\r\n" +
+			strings.Repeat("0", 74) + "=\r\n=C3=A0\r\n" +
+			strings.Repeat("0", 73) + "=C3=\r\n=A0\r\n" +
+			strings.Repeat("0", 76) + "\r\n" +
+			strings.Repeat("0", 76) + "=\r\n0\n",
 	}
 
 	testMessage(t, msg, 0, want)
@@ -474,7 +474,7 @@ func TestBase64LineLength(t *testing.T) {
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			strings.Repeat("MDAw", 19) + "MA\r\n==",
+			strings.Repeat("MDAw", 19) + "\r\nMA==",
 	}
 
 	testMessage(t, msg, 0, want)
