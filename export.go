@@ -126,7 +126,11 @@ func (w *messageWriter) addFiles(files []*File, isAttachment bool) {
 			h["Content-Disposition"] = []string{"attachment; filename=\"" + f.Name + "\""}
 		} else {
 			h["Content-Disposition"] = []string{"inline; filename=\"" + f.Name + "\""}
-			h["Content-ID"] = []string{"<" + f.Name + ">"}
+			if f.ContentID != "" {
+				h["Content-ID"] = []string{"<" + f.ContentID + ">"}
+			} else {
+				h["Content-ID"] = []string{"<" + f.Name + ">"}
+			}
 		}
 
 		w.write(h, f.Content, Base64)

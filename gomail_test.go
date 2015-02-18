@@ -336,7 +336,9 @@ func TestEmbedded(t *testing.T) {
 	msg := NewMessage()
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
-	msg.Embed(CreateFile("image1.jpg", []byte("Content 1")))
+	f := CreateFile("image1.jpg", []byte("Content 1"))
+	f.ContentID = "test-content-id"
+	msg.Embed(f)
 	msg.Embed(CreateFile("image2.jpg", []byte("Content 2")))
 	msg.SetBody("text/plain", "Test")
 
@@ -355,7 +357,7 @@ func TestEmbedded(t *testing.T) {
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: image/jpeg; name=\"image1.jpg\"\r\n" +
 			"Content-Disposition: inline; filename=\"image1.jpg\"\r\n" +
-			"Content-ID: <image1.jpg>\r\n" +
+			"Content-ID: <test-content-id>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
 			base64.StdEncoding.EncodeToString([]byte("Content 1")) + "\r\n" +
