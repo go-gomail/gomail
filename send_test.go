@@ -23,7 +23,7 @@ var (
 const wantMsg = "To: to1@example.com, to2@example.com\r\n" +
 	"From: from@example.com\r\n" +
 	"Mime-Version: 1.0\r\n" +
-	"Date: 25 Jun 14 17:46 +0000\r\n" +
+	"Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
 	"Content-Type: text/plain; charset=UTF-8\r\n" +
 	"Content-Transfer-Encoding: quoted-printable\r\n" +
 	"\r\n" +
