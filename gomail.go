@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/alexcesaro/quotedprintable.v1"
+	"gopkg.in/alexcesaro/quotedprintable.v2"
 )
 
 // Message represents an email.
@@ -104,13 +104,9 @@ const (
 // SetHeader sets a value to the given header field.
 func (msg *Message) SetHeader(field string, value ...string) {
 	for i := range value {
-		value[i] = msg.encodeHeader(value[i])
+		value[i] = encodeHeader(msg.hEncoder, value[i])
 	}
 	msg.header[field] = value
-}
-
-func (msg *Message) encodeHeader(value string) string {
-	return msg.hEncoder.Encode(value)
 }
 
 // SetHeaders sets the message headers.
@@ -138,10 +134,15 @@ func (msg *Message) FormatAddress(address, name string) string {
 	buf := getBuffer()
 	defer putBuffer(buf)
 
-	n := msg.encodeHeader(name)
-	if n == name {
+	if !quotedprintable.NeedsEncoding(name) {
 		quote(buf, name)
 	} else {
+		var n string
+		if hasSpecials(name) {
+			n = encodeHeader(quotedprintable.B.NewHeaderEncoder(msg.charset), name)
+		} else {
+			n = encodeHeader(msg.hEncoder, name)
+		}
 		buf.WriteString(n)
 	}
 	buf.WriteString(" <")
@@ -293,6 +294,25 @@ func quote(buf *bytes.Buffer, text string) {
 		buf.WriteByte(text[i])
 	}
 	buf.WriteByte('"')
+}
+
+func hasSpecials(text string) bool {
+	for i := 0; i < len(text); i++ {
+		switch c := text[i]; c {
+		case '(', ')', '<', '>', '[', ']', ':', ';', '@', '\\', ',', '.', '"':
+			return true
+		}
+	}
+
+	return false
+}
+
+func encodeHeader(enc *quotedprintable.HeaderEncoder, value string) string {
+	if !quotedprintable.NeedsEncoding(value) {
+		return value
+	}
+
+	return enc.Encode(value)
 }
 
 var bufPool = sync.Pool{
