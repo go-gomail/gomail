@@ -134,7 +134,12 @@ func (msg *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (msg *Message) FormatAddress(address, name string) string {
-	return msg.encodeHeader(name) + " <" + address + ">"
+	n := msg.encodeHeader(name)
+	if n == name {
+		n = quote(name)
+	}
+
+	return n + " <" + address + ">"
 }
 
 // SetDateHeader sets a date to the given header field.
@@ -269,3 +274,16 @@ func (msg *Message) Embed(image ...*File) {
 
 // Stubbed out for testing.
 var readFile = ioutil.ReadFile
+
+func quote(text string) string {
+	buf := bytes.NewBufferString(`"`)
+	for i := 0; i < len(text); i++ {
+		if text[i] == '\\' || text[i] == '"' {
+			buf.WriteByte('\\')
+		}
+		buf.WriteByte(text[i])
+	}
+	buf.WriteByte('"')
+
+	return buf.String()
+}
