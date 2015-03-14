@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"mime"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"gopkg.in/alexcesaro/quotedprintable.v1"
@@ -134,12 +135,20 @@ func (msg *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (msg *Message) FormatAddress(address, name string) string {
+	buf := getBuffer()
+	defer putBuffer(buf)
+
 	n := msg.encodeHeader(name)
 	if n == name {
-		n = quote(name)
+		quote(buf, name)
+	} else {
+		buf.WriteString(n)
 	}
+	buf.WriteString(" <")
+	buf.WriteString(address)
+	buf.WriteByte('>')
 
-	return n + " <" + address + ">"
+	return buf.String()
 }
 
 // SetDateHeader sets a date to the given header field.
@@ -275,8 +284,8 @@ func (msg *Message) Embed(image ...*File) {
 // Stubbed out for testing.
 var readFile = ioutil.ReadFile
 
-func quote(text string) string {
-	buf := bytes.NewBufferString(`"`)
+func quote(buf *bytes.Buffer, text string) {
+	buf.WriteByte('"')
 	for i := 0; i < len(text); i++ {
 		if text[i] == '\\' || text[i] == '"' {
 			buf.WriteByte('\\')
@@ -284,6 +293,22 @@ func quote(text string) string {
 		buf.WriteByte(text[i])
 	}
 	buf.WriteByte('"')
+}
 
-	return buf.String()
+var bufPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
+}
+
+func getBuffer() *bytes.Buffer {
+	return bufPool.Get().(*bytes.Buffer)
+}
+
+func putBuffer(buf *bytes.Buffer) {
+	if buf.Len() > 1024 {
+		return
+	}
+	buf.Reset()
+	bufPool.Put(buf)
 }
