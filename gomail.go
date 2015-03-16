@@ -135,7 +135,7 @@ func (msg *Message) FormatAddress(address, name string) string {
 	defer putBuffer(buf)
 
 	if !quotedprintable.NeedsEncoding(name) {
-		quote(buf, name)
+		*buf = quote(*buf, name)
 	} else {
 		var n string
 		if hasSpecials(name) {
@@ -143,13 +143,11 @@ func (msg *Message) FormatAddress(address, name string) string {
 		} else {
 			n = encodeHeader(msg.hEncoder, name)
 		}
-		buf.WriteString(n)
+		*buf = append(*buf, n...)
 	}
-	buf.WriteString(" <")
-	buf.WriteString(address)
-	buf.WriteByte('>')
+	*buf = append(append(append(*buf, ' ', '<'), address...), '>')
 
-	return buf.String()
+	return string(*buf)
 }
 
 // SetDateHeader sets a date to the given header field.
@@ -285,15 +283,15 @@ func (msg *Message) Embed(image ...*File) {
 // Stubbed out for testing.
 var readFile = ioutil.ReadFile
 
-func quote(buf *bytes.Buffer, text string) {
-	buf.WriteByte('"')
+func quote(buf []byte, text string) []byte {
+	buf = append(buf, '"')
 	for i := 0; i < len(text); i++ {
 		if text[i] == '\\' || text[i] == '"' {
-			buf.WriteByte('\\')
+			buf = append(buf, '\\')
 		}
-		buf.WriteByte(text[i])
+		buf = append(buf, text[i])
 	}
-	buf.WriteByte('"')
+	return append(buf, '"')
 }
 
 func hasSpecials(text string) bool {
@@ -317,18 +315,18 @@ func encodeHeader(enc *quotedprintable.HeaderEncoder, value string) string {
 
 var bufPool = sync.Pool{
 	New: func() interface{} {
-		return new(bytes.Buffer)
+		return new([]byte)
 	},
 }
 
-func getBuffer() *bytes.Buffer {
-	return bufPool.Get().(*bytes.Buffer)
+func getBuffer() *[]byte {
+	return bufPool.Get().(*[]byte)
 }
 
-func putBuffer(buf *bytes.Buffer) {
-	if buf.Len() > 1024 {
+func putBuffer(buf *[]byte) {
+	if len(*buf) > 1024 {
 		return
 	}
-	buf.Reset()
+	*buf = (*buf)[:0]
 	bufPool.Put(buf)
 }
