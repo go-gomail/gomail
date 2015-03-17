@@ -129,11 +129,17 @@ func flattenHeader(msg *mail.Message, bcc string) []byte {
 
 	for field, value := range msg.Header {
 		if field != "Bcc" {
-			buf.WriteString(field + ": " + strings.Join(value, ", ") + "\r\n")
+			buf.WriteString(field)
+			buf.WriteString(": ")
+			buf.WriteString(strings.Join(value, ", "))
+			buf.WriteString("\r\n")
 		} else if bcc != "" {
 			for _, to := range value {
 				if strings.Contains(to, bcc) {
-					buf.WriteString(field + ": " + to + "\r\n")
+					buf.WriteString(field)
+					buf.WriteString(": ")
+					buf.WriteString(to)
+					buf.WriteString("\r\n")
 				}
 			}
 		}
