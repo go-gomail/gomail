@@ -8,7 +8,7 @@ import (
 	"net/mail"
 	"time"
 
-	"gopkg.in/alexcesaro/quotedprintable.v1"
+	"gopkg.in/alexcesaro/quotedprintable.v2"
 )
 
 // Export converts the message into a net/mail.Message.
