@@ -46,8 +46,22 @@ func (msg *Message) Export() *mail.Message {
 	if msg.hasMixedPart() {
 		w.closeMultipart()
 	}
+	msg.msgWriter = w
 
 	return w.export()
+}
+
+// FreeBuffers returns all used buffers to the pool
+func (msg *Message) FreeBuffers() (freed int) {
+	for _, part := range msg.parts {
+		putBuffer(part.body)
+		freed++
+	}
+	if msg.msgWriter != nil {
+		putBuffer(msg.msgWriter.buf)
+		freed++
+	}
+	return
 }
 
 func (msg *Message) hasMixedPart() bool {
@@ -85,7 +99,7 @@ func newMessageWriter(msg *Message) *messageWriter {
 		header["Date"] = []string{msg.FormatDate(now())}
 	}
 
-	return &messageWriter{header: header, buf: new(bytes.Buffer)}
+	return &messageWriter{header: header, buf: getBuffer()}
 }
 
 // Stubbed out for testing.
