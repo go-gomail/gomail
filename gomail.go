@@ -24,6 +24,7 @@ type Message struct {
 	charset     string
 	encoding    Encoding
 	hEncoder    *quotedprintable.HeaderEncoder
+	msgWriter   *messageWriter
 }
 
 type header map[string][]string
@@ -174,10 +175,12 @@ func (msg *Message) DelHeader(field string) {
 
 // SetBody sets the body of the message.
 func (msg *Message) SetBody(contentType, body string) {
+	buf := getBuffer()
+	buf.WriteString(body)
 	msg.parts = []part{
 		part{
 			contentType: contentType,
-			body:        bytes.NewBufferString(body),
+			body:        buf,
 		},
 	}
 }
@@ -193,10 +196,12 @@ func (msg *Message) SetBody(contentType, body string) {
 //
 // More info: http://en.wikipedia.org/wiki/MIME#Alternative
 func (msg *Message) AddAlternative(contentType, body string) {
+	buf := getBuffer()
+	buf.WriteString(body)
 	msg.parts = append(msg.parts,
 		part{
 			contentType: contentType,
-			body:        bytes.NewBufferString(body),
+			body:        buf,
 		},
 	)
 }
@@ -210,7 +215,7 @@ func (msg *Message) AddAlternative(contentType, body string) {
 //	t := template.Must(template.New("example").Parse("Hello {{.}}!"))
 //	t.Execute(w, "Bob")
 func (msg *Message) GetBodyWriter(contentType string) io.Writer {
-	buf := new(bytes.Buffer)
+	buf := getBuffer()
 	msg.parts = append(msg.parts,
 		part{
 			contentType: contentType,

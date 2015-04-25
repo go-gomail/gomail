@@ -432,6 +432,16 @@ func TestFullMessage(t *testing.T) {
 	}
 
 	testMessage(t, msg, 3, want)
+
+	// Test reset
+	msg.Reset()
+	msg.SetHeader("From", "from@example.com")
+	msg.SetHeader("To", "to@example.com")
+	msg.SetBody("text/plain", "¡Hola, señor!")
+	msg.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
+	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
+	msg.Embed(CreateFile("image.jpg", []byte("Content 2")))
+	testMessage(t, msg, 3, want)
 }
 
 func TestQpLineLength(t *testing.T) {
@@ -635,5 +645,6 @@ func BenchmarkFull(b *testing.B) {
 		if err := mailer.Send(msg); err != nil {
 			panic(err)
 		}
+		msg.Reset()
 	}
 }
