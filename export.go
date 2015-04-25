@@ -51,17 +51,21 @@ func (msg *Message) Export() *mail.Message {
 	return w.export()
 }
 
-// FreeBuffers returns all used buffers to the pool
-func (msg *Message) FreeBuffers() (freed int) {
+// Reset resets all state in Message and returns all used buffers to the pool.
+// The initial settings used to create the instance are preserved so the
+// instance can be safely reused to create a new message.
+func (msg *Message) Reset() {
 	for _, part := range msg.parts {
 		putBuffer(part.body)
-		freed++
 	}
+	msg.parts = nil
 	if msg.msgWriter != nil {
 		putBuffer(msg.msgWriter.buf)
-		freed++
+		msg.msgWriter = nil
 	}
-	return
+	msg.header = make(header)
+	msg.attachments = nil
+	msg.embedded = nil
 }
 
 func (msg *Message) hasMixedPart() bool {

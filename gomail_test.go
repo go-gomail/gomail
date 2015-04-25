@@ -53,8 +53,6 @@ func TestMessage(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want)
-	testFreed(t, msg, 2)
-
 }
 
 func TestBodyWriter(t *testing.T) {
@@ -76,7 +74,6 @@ func TestBodyWriter(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want)
-	testFreed(t, msg, 2)
 }
 
 func TestCustomMessage(t *testing.T) {
@@ -101,7 +98,6 @@ func TestCustomMessage(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want)
-	testFreed(t, msg, 2)
 }
 
 func TestUnencodedMessage(t *testing.T) {
@@ -126,7 +122,6 @@ func TestUnencodedMessage(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want)
-	testFreed(t, msg, 2)
 }
 
 func TestRecipients(t *testing.T) {
@@ -180,7 +175,6 @@ func TestRecipients(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want, wantBcc1, wantBcc2)
-	testFreed(t, msg, 2)
 }
 
 func TestAlternative(t *testing.T) {
@@ -211,7 +205,6 @@ func TestAlternative(t *testing.T) {
 	}
 
 	testMessage(t, msg, 1, want)
-	testFreed(t, msg, 3)
 }
 
 func TestAttachmentOnly(t *testing.T) {
@@ -241,7 +234,6 @@ func TestAttachmentOnly(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want)
-	testFreed(t, msg, 1)
 }
 
 func TestAttachment(t *testing.T) {
@@ -273,7 +265,6 @@ func TestAttachment(t *testing.T) {
 	}
 
 	testMessage(t, msg, 1, want)
-	testFreed(t, msg, 2)
 }
 
 func TestAttachmentsOnly(t *testing.T) {
@@ -306,7 +297,6 @@ func TestAttachmentsOnly(t *testing.T) {
 	}
 
 	testMessage(t, msg, 1, want)
-	testFreed(t, msg, 1)
 }
 
 func TestAttachments(t *testing.T) {
@@ -345,7 +335,6 @@ func TestAttachments(t *testing.T) {
 	}
 
 	testMessage(t, msg, 1, want)
-	testFreed(t, msg, 2)
 }
 
 func TestEmbedded(t *testing.T) {
@@ -388,7 +377,6 @@ func TestEmbedded(t *testing.T) {
 	}
 
 	testMessage(t, msg, 1, want)
-	testFreed(t, msg, 2)
 }
 
 func TestFullMessage(t *testing.T) {
@@ -444,7 +432,16 @@ func TestFullMessage(t *testing.T) {
 	}
 
 	testMessage(t, msg, 3, want)
-	testFreed(t, msg, 3)
+
+	// Test reset
+	msg.Reset()
+	msg.SetHeader("From", "from@example.com")
+	msg.SetHeader("To", "to@example.com")
+	msg.SetBody("text/plain", "¡Hola, señor!")
+	msg.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
+	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
+	msg.Embed(CreateFile("image.jpg", []byte("Content 2")))
+	testMessage(t, msg, 3, want)
 }
 
 func TestQpLineLength(t *testing.T) {
@@ -478,7 +475,6 @@ func TestQpLineLength(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want)
-	testFreed(t, msg, 2)
 }
 
 func TestBase64LineLength(t *testing.T) {
@@ -499,7 +495,6 @@ func TestBase64LineLength(t *testing.T) {
 	}
 
 	testMessage(t, msg, 0, want)
-	testFreed(t, msg, 2)
 }
 
 func testMessage(t *testing.T, msg *Message, bCount int, emails ...message) {
@@ -509,13 +504,6 @@ func testMessage(t *testing.T, msg *Message, bCount int, emails ...message) {
 	err := mailer.Send(msg)
 	if err != nil {
 		t.Error(err)
-	}
-}
-
-func testFreed(t *testing.T, msg *Message, expected int) {
-	freed := msg.FreeBuffers()
-	if freed != expected {
-		t.Errorf("Unexpexted number of buffers freed: expected %d, got %d", expected, freed)
 	}
 }
 
@@ -657,6 +645,6 @@ func BenchmarkFull(b *testing.B) {
 		if err := mailer.Send(msg); err != nil {
 			panic(err)
 		}
-		msg.FreeBuffers()
+		msg.Reset()
 	}
 }
