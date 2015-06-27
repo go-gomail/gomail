@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
-
-	"gopkg.in/alexcesaro/quotedprintable.v2"
 )
 
 // Message represents an email.
@@ -23,7 +21,7 @@ type Message struct {
 	embedded    []*File
 	charset     string
 	encoding    Encoding
-	hEncoder    *quotedprintable.HeaderEncoder
+	hEncoder    mime.WordEncoder
 }
 
 type header map[string][]string
@@ -44,13 +42,11 @@ func NewMessage(settings ...MessageSetting) *Message {
 
 	msg.applySettings(settings)
 
-	var e quotedprintable.Encoding
 	if msg.encoding == Base64 {
-		e = quotedprintable.B
+		msg.hEncoder = mime.BEncoding
 	} else {
-		e = quotedprintable.Q
+		msg.hEncoder = mime.QEncoding
 	}
-	msg.hEncoder = e.NewHeaderEncoder(msg.charset)
 
 	return msg
 }
@@ -104,7 +100,7 @@ const (
 // SetHeader sets a value to the given header field.
 func (msg *Message) SetHeader(field string, value ...string) {
 	for i := range value {
-		value[i] = encodeHeader(msg.hEncoder, value[i])
+		value[i] = msg.encodeHeader(value[i])
 	}
 	msg.header[field] = value
 }
@@ -134,16 +130,13 @@ func (msg *Message) FormatAddress(address, name string) string {
 	buf := getBuffer()
 	defer putBuffer(buf)
 
-	if !quotedprintable.NeedsEncoding(name) {
+	enc := msg.encodeHeader(name)
+	if enc == name {
 		quote(buf, name)
+	} else if hasSpecials(name) {
+		buf.WriteString(mime.BEncoding.Encode(msg.charset, name))
 	} else {
-		var n string
-		if hasSpecials(name) {
-			n = encodeHeader(quotedprintable.B.NewHeaderEncoder(msg.charset), name)
-		} else {
-			n = encodeHeader(msg.hEncoder, name)
-		}
-		buf.WriteString(n)
+		buf.WriteString(enc)
 	}
 	buf.WriteString(" <")
 	buf.WriteString(address)
@@ -307,12 +300,8 @@ func hasSpecials(text string) bool {
 	return false
 }
 
-func encodeHeader(enc *quotedprintable.HeaderEncoder, value string) string {
-	if !quotedprintable.NeedsEncoding(value) {
-		return value
-	}
-
-	return enc.Encode(value)
+func (msg *Message) encodeHeader(value string) string {
+	return msg.hEncoder.Encode(msg.charset, value)
 }
 
 var bufPool = sync.Pool{

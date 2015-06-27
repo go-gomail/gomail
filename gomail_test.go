@@ -38,14 +38,14 @@ func TestMessage(t *testing.T) {
 			"tobis@example.com",
 			"cc@example.com",
 		},
-		content: "From: =?UTF-8?Q?Se=C3=B1or_From?= <from@example.com>\r\n" +
-			"To: =?UTF-8?Q?Se=C3=B1or_To?= <to@example.com>, tobis@example.com\r\n" +
+		content: "From: =?UTF-8?q?Se=C3=B1or_From?= <from@example.com>\r\n" +
+			"To: =?UTF-8?q?Se=C3=B1or_To?= <to@example.com>, tobis@example.com\r\n" +
 			"Cc: \"A, B\" <cc@example.com>\r\n" +
-			"X-To: =?UTF-8?B?w6AsIGI=?= <ccbis@example.com>\r\n" +
+			"X-To: =?UTF-8?b?w6AsIGI=?= <ccbis@example.com>\r\n" +
 			"X-Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
 			"X-Date-2: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
-			"X-Headers: Test, =?UTF-8?Q?Caf=C3=A9?=\r\n" +
-			"Subject: =?UTF-8?Q?=C2=A1Hola,_se=C3=B1or!?=\r\n" +
+			"X-Headers: Test, =?UTF-8?q?Caf=C3=A9?=\r\n" +
+			"Subject: =?UTF-8?q?=C2=A1Hola,_se=C3=B1or!?=\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
 			"Content-Transfer-Encoding: quoted-printable\r\n" +
 			"\r\n" +
@@ -90,7 +90,7 @@ func TestCustomMessage(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Subject: =?ISO-8859-1?B?Q2Fmw6k=?=\r\n" +
+			"Subject: =?ISO-8859-1?b?Q2Fmw6k=?=\r\n" +
 			"Content-Type: text/html; charset=ISO-8859-1\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
@@ -114,7 +114,7 @@ func TestUnencodedMessage(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Subject: =?UTF-8?Q?Caf=C3=A9?=\r\n" +
+			"Subject: =?UTF-8?q?Caf=C3=A9?=\r\n" +
 			"Content-Type: text/html; charset=UTF-8\r\n" +
 			"Content-Transfer-Encoding: 8bit\r\n" +
 			"\r\n" +
@@ -439,13 +439,13 @@ func TestQpLineLength(t *testing.T) {
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
 	msg.SetBody("text/plain",
-		strings.Repeat("0", 77)+"\r\n"+
-			strings.Repeat("0", 76)+"à\r\n"+
+		strings.Repeat("0", 76)+"\r\n"+
 			strings.Repeat("0", 75)+"à\r\n"+
 			strings.Repeat("0", 74)+"à\r\n"+
 			strings.Repeat("0", 73)+"à\r\n"+
-			strings.Repeat("0", 76)+"\r\n"+
-			strings.Repeat("0", 77)+"\n")
+			strings.Repeat("0", 72)+"à\r\n"+
+			strings.Repeat("0", 75)+"\r\n"+
+			strings.Repeat("0", 76)+"\n")
 
 	want := message{
 		from: "from@example.com",
@@ -455,13 +455,13 @@ func TestQpLineLength(t *testing.T) {
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
 			"Content-Transfer-Encoding: quoted-printable\r\n" +
 			"\r\n" +
-			strings.Repeat("0", 76) + "=\r\n0\r\n" +
-			strings.Repeat("0", 76) + "=\r\n=C3=A0\r\n" +
+			strings.Repeat("0", 75) + "=\r\n0\r\n" +
 			strings.Repeat("0", 75) + "=\r\n=C3=A0\r\n" +
 			strings.Repeat("0", 74) + "=\r\n=C3=A0\r\n" +
-			strings.Repeat("0", 73) + "=C3=\r\n=A0\r\n" +
-			strings.Repeat("0", 76) + "\r\n" +
-			strings.Repeat("0", 76) + "=\r\n0\n",
+			strings.Repeat("0", 73) + "=\r\n=C3=A0\r\n" +
+			strings.Repeat("0", 72) + "=C3=\r\n=A0\r\n" +
+			strings.Repeat("0", 75) + "\r\n" +
+			strings.Repeat("0", 75) + "=\r\n0\r\n",
 	}
 
 	testMessage(t, msg, 0, want)
