@@ -110,7 +110,7 @@ func getFrom(msg *mail.Message) (string, error) {
 	if from == "" {
 		from = msg.Header.Get("From")
 		if from == "" {
-			return "", errors.New("mailer: invalid message, \"From\" field is absent")
+			return "", errors.New("gomail: invalid message, \"From\" field is absent")
 		}
 	}
 
