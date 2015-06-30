@@ -9,13 +9,14 @@ import (
 	"testing"
 )
 
-var (
-	testHost    = "smtp.example.com"
+const (
 	testPort    = 587
 	testSSLPort = 465
+)
+
+var (
 	testTLSConn = &tls.Conn{}
 	testConfig  = &tls.Config{InsecureSkipVerify: true}
-	testAuth    = smtp.PlainAuth("", "user", "pwd", testHost)
 )
 
 func TestSMTPDialer(t *testing.T) {

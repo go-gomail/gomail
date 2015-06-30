@@ -26,14 +26,19 @@ type SMTPDialer struct {
 	TLSConfig *tls.Config
 }
 
-// NewPlainDialer returns an SMTPDialer. The given parameters are used to
-// connect to the SMTP server via a PLAIN authentication mechanism.
+// NewPlainDialer returns a Dialer. The given parameters are used to connect to
+// the SMTP server via a PLAIN authentication mechanism. It fallbacks to the
+// LOGIN mechanism if it is the only mechanism advertised by the server.
 func NewPlainDialer(host, username, password string, port int) *SMTPDialer {
 	return &SMTPDialer{
 		Host: host,
 		Port: port,
-		Auth: smtp.PlainAuth("", username, password, host),
-		SSL:  port == 465,
+		Auth: &plainAuth{
+			username: username,
+			password: password,
+			host:     host,
+		},
+		SSL: port == 465,
 	}
 }
 
