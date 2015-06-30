@@ -8,8 +8,8 @@ import (
 	"net/smtp"
 )
 
-// An SMTPDialer is a dialer to an SMTP server.
-type SMTPDialer struct {
+// A Dialer is a dialer to an SMTP server.
+type Dialer struct {
 	// Host represents the host of the SMTP server.
 	Host string
 	// Port represents the port of the SMTP server.
@@ -29,8 +29,8 @@ type SMTPDialer struct {
 // NewPlainDialer returns a Dialer. The given parameters are used to connect to
 // the SMTP server via a PLAIN authentication mechanism. It fallbacks to the
 // LOGIN mechanism if it is the only mechanism advertised by the server.
-func NewPlainDialer(host, username, password string, port int) *SMTPDialer {
-	return &SMTPDialer{
+func NewPlainDialer(host, username, password string, port int) *Dialer {
+	return &Dialer{
 		Host: host,
 		Port: port,
 		Auth: &plainAuth{
@@ -44,7 +44,7 @@ func NewPlainDialer(host, username, password string, port int) *SMTPDialer {
 
 // Dial dials and authenticates to an SMTP server. The returned SendCloser
 // should be closed when done using it.
-func (d *SMTPDialer) Dial() (SendCloser, error) {
+func (d *Dialer) Dial() (SendCloser, error) {
 	c, err := d.dial()
 	if err != nil {
 		return nil, err
@@ -62,14 +62,14 @@ func (d *SMTPDialer) Dial() (SendCloser, error) {
 	return &smtpSender{c}, nil
 }
 
-func (d *SMTPDialer) dial() (smtpClient, error) {
+func (d *Dialer) dial() (smtpClient, error) {
 	if d.SSL {
 		return d.sslDial()
 	}
 	return d.starttlsDial()
 }
 
-func (d *SMTPDialer) starttlsDial() (smtpClient, error) {
+func (d *Dialer) starttlsDial() (smtpClient, error) {
 	c, err := smtpDial(addr(d.Host, d.Port))
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (d *SMTPDialer) starttlsDial() (smtpClient, error) {
 	return c, nil
 }
 
-func (d *SMTPDialer) sslDial() (smtpClient, error) {
+func (d *Dialer) sslDial() (smtpClient, error) {
 	conn, err := tlsDial("tcp", addr(d.Host, d.Port), d.tlsConfig())
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (d *SMTPDialer) sslDial() (smtpClient, error) {
 	return newClient(conn, d.Host)
 }
 
-func (d *SMTPDialer) tlsConfig() *tls.Config {
+func (d *Dialer) tlsConfig() *tls.Config {
 	if d.TLSConfig == nil {
 		return &tls.Config{ServerName: d.Host}
 	}
@@ -106,9 +106,9 @@ func addr(host string, port int) string {
 	return fmt.Sprintf("%s:%d", host, port)
 }
 
-// DialAndSend opens a connection to an SMTP server, sends the given emails and
+// DialAndSend opens a connection to the SMTP server, sends the given emails and
 // closes the connection.
-func (d *SMTPDialer) DialAndSend(msg ...*Message) error {
+func (d *Dialer) DialAndSend(msg ...*Message) error {
 	s, err := d.Dial()
 	if err != nil {
 		return err

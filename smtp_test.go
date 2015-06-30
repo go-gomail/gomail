@@ -19,7 +19,7 @@ var (
 	testConfig  = &tls.Config{InsecureSkipVerify: true}
 )
 
-func TestSMTPDialer(t *testing.T) {
+func TestDialer(t *testing.T) {
 	d := NewPlainDialer(testHost, "user", "pwd", testPort)
 	testSendMail(t, d, []string{
 		"Extension STARTTLS",
@@ -37,7 +37,7 @@ func TestSMTPDialer(t *testing.T) {
 	})
 }
 
-func TestSMTPDialerSSL(t *testing.T) {
+func TestDialerSSL(t *testing.T) {
 	d := NewPlainDialer(testHost, "user", "pwd", testSSLPort)
 	testSendMail(t, d, []string{
 		"Extension AUTH",
@@ -53,7 +53,7 @@ func TestSMTPDialerSSL(t *testing.T) {
 	})
 }
 
-func TestSMTPDialerConfig(t *testing.T) {
+func TestDialerConfig(t *testing.T) {
 	d := NewPlainDialer(testHost, "user", "pwd", testPort)
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
@@ -72,7 +72,7 @@ func TestSMTPDialerConfig(t *testing.T) {
 	})
 }
 
-func TestSMTPDialerSSLConfig(t *testing.T) {
+func TestDialerSSLConfig(t *testing.T) {
 	d := NewPlainDialer(testHost, "user", "pwd", testSSLPort)
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
@@ -89,8 +89,8 @@ func TestSMTPDialerSSLConfig(t *testing.T) {
 	})
 }
 
-func TestSMTPDialerNoAuth(t *testing.T) {
-	d := &SMTPDialer{
+func TestDialerNoAuth(t *testing.T) {
+	d := &Dialer{
 		Host: testHost,
 		Port: testPort,
 	}
@@ -186,7 +186,7 @@ func (w *mockWriter) Close() error {
 	return nil
 }
 
-func testSendMail(t *testing.T, d *SMTPDialer, want []string) {
+func testSendMail(t *testing.T, d *Dialer, want []string) {
 	testClient := &mockClient{
 		t:      t,
 		want:   want,
