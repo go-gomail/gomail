@@ -2,7 +2,8 @@ package gomail
 
 import (
 	"encoding/base64"
-	"net/smtp"
+	"io"
+	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -10,6 +11,12 @@ import (
 	"testing"
 	"time"
 )
+
+func init() {
+	now = func() time.Time {
+		return time.Date(2014, 06, 25, 17, 46, 0, 0, time.UTC)
+	}
+}
 
 type message struct {
 	from    string
@@ -23,8 +30,8 @@ func TestMessage(t *testing.T) {
 	msg.SetHeader("To", msg.FormatAddress("to@example.com", "Señor To"), "tobis@example.com")
 	msg.SetAddressHeader("Cc", "cc@example.com", "A, B")
 	msg.SetAddressHeader("X-To", "ccbis@example.com", "à, b")
-	msg.SetDateHeader("X-Date", stubNow())
-	msg.SetHeader("X-Date-2", msg.FormatDate(stubNow()))
+	msg.SetDateHeader("X-Date", now())
+	msg.SetHeader("X-Date-2", msg.FormatDate(now()))
 	msg.SetHeader("Subject", "¡Hola, señor!")
 	msg.SetHeaders(map[string][]string{
 		"X-Headers": {"Test", "Café"},
@@ -488,30 +495,19 @@ func TestBase64LineLength(t *testing.T) {
 }
 
 func testMessage(t *testing.T, msg *Message, bCount int, emails ...message) {
-	now = stubNow
-	mailer := NewMailer("host", "username", "password", 587, SetSendMail(stubSendMail(t, bCount, emails...)))
-
-	err := mailer.Send(msg)
+	err := Send(stubSendMail(t, bCount, emails...), msg)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func stubNow() time.Time {
-	return time.Date(2014, 06, 25, 17, 46, 0, 0, time.UTC)
-}
-
-func stubSendMail(t *testing.T, bCount int, emails ...message) SendMailFunc {
+func stubSendMail(t *testing.T, bCount int, emails ...message) SendFunc {
 	i := 0
-	return func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	return func(from string, to []string, msg io.Reader) error {
 		if i > len(emails) {
 			t.Fatalf("Only %d mails should be sent", len(emails))
 		}
 		want := emails[i]
-
-		if addr != "host:587" {
-			t.Fatalf("Invalid address, got %q, want host:587", addr)
-		}
 
 		if from != want.from {
 			t.Fatalf("Invalid from, got %q, want %q", from, want.from)
@@ -531,7 +527,11 @@ func stubSendMail(t *testing.T, bCount int, emails ...message) SendMailFunc {
 			}
 		}
 
-		got := string(msg)
+		content, err := ioutil.ReadAll(msg)
+		if err != nil {
+			t.Error(err)
+		}
+		got := string(content)
 		wantMsg := string("Mime-Version: 1.0\r\n" +
 			"Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
 			want.content)
@@ -613,7 +613,7 @@ func getBoundaries(t *testing.T, count int, msg string) []string {
 var boundaryRegExp = regexp.MustCompile("boundary=(\\w+)")
 
 func BenchmarkFull(b *testing.B) {
-	emptyFunc := func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	emptyFunc := func(from string, to []string, msg io.Reader) error {
 		return nil
 	}
 
@@ -631,8 +631,7 @@ func BenchmarkFull(b *testing.B) {
 		msg.Attach(CreateFile("benchmark.txt", []byte("Benchmark")))
 		msg.Embed(CreateFile("benchmark.jpg", []byte("Benchmark")))
 
-		mailer := NewMailer("host", "username", "password", 587, SetSendMail(emptyFunc))
-		if err := mailer.Send(msg); err != nil {
+		if err := Send(SendFunc(emptyFunc), msg); err != nil {
 			panic(err)
 		}
 	}

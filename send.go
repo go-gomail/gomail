@@ -1,102 +1,161 @@
 package gomail
 
 import (
-	"crypto/tls"
+	"bytes"
+	"errors"
+	"fmt"
 	"io"
-	"net"
-	"net/smtp"
+	"io/ioutil"
+	"net/mail"
+	"strings"
 )
 
-func (m *Mailer) getSendMailFunc(ssl bool) SendMailFunc {
-	return func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
-		var c smtpClient
-		var err error
-		if ssl {
-			c, err = sslDial(addr, m.host, m.config)
-		} else {
-			c, err = starttlsDial(addr, m.config)
+// Sender is the interface that wraps the Send method.
+//
+// Send sends an email to the given addresses.
+type Sender interface {
+	Send(from string, to []string, msg io.Reader) error
+}
+
+// SendCloser is the interface that groups the Send and Close methods.
+type SendCloser interface {
+	Sender
+	Close() error
+}
+
+// A SendFunc is a function that sends emails to the given adresses.
+// The SendFunc type is an adapter to allow the use of ordinary functions as
+// email senders. If f is a function with the appropriate signature, SendFunc(f)
+// is a Sender object that calls f.
+type SendFunc func(from string, to []string, msg io.Reader) error
+
+// Send calls f(from, to, msg).
+func (f SendFunc) Send(from string, to []string, msg io.Reader) error {
+	return f(from, to, msg)
+}
+
+// Send sends emails using the given Sender.
+func Send(s Sender, msg ...*Message) error {
+	for i, m := range msg {
+		if err := send(s, m); err != nil {
+			return fmt.Errorf("gomail: could not send email %d: %v", i+1, err)
 		}
-		if err != nil {
+	}
+
+	return nil
+}
+
+func send(s Sender, msg *Message) error {
+	message := msg.Export()
+
+	from, err := getFrom(message)
+	if err != nil {
+		return err
+	}
+	recipients, bcc, err := getRecipients(message)
+	if err != nil {
+		return err
+	}
+
+	h := flattenHeader(message, "")
+	body, err := ioutil.ReadAll(message.Body)
+	if err != nil {
+		return err
+	}
+
+	mail := bytes.NewReader(append(h, body...))
+	if err := s.Send(from, recipients, mail); err != nil {
+		return err
+	}
+
+	for _, to := range bcc {
+		h = flattenHeader(message, to)
+		mail = bytes.NewReader(append(h, body...))
+		if err := s.Send(from, []string{to}, mail); err != nil {
 			return err
 		}
-		defer c.Close()
+	}
 
-		if a != nil {
-			if ok, _ := c.Extension("AUTH"); ok {
-				if err = c.Auth(a); err != nil {
-					return err
+	return nil
+}
+
+func flattenHeader(msg *mail.Message, bcc string) []byte {
+	buf := getBuffer()
+	defer putBuffer(buf)
+
+	for field, value := range msg.Header {
+		if field != "Bcc" {
+			buf.WriteString(field)
+			buf.WriteString(": ")
+			buf.WriteString(strings.Join(value, ", "))
+			buf.WriteString("\r\n")
+		} else if bcc != "" {
+			for _, to := range value {
+				if strings.Contains(to, bcc) {
+					buf.WriteString(field)
+					buf.WriteString(": ")
+					buf.WriteString(to)
+					buf.WriteString("\r\n")
 				}
 			}
 		}
+	}
+	buf.WriteString("\r\n")
 
-		if err = c.Mail(from); err != nil {
-			return err
+	return buf.Bytes()
+}
+
+func getFrom(msg *mail.Message) (string, error) {
+	from := msg.Header.Get("Sender")
+	if from == "" {
+		from = msg.Header.Get("From")
+		if from == "" {
+			return "", errors.New("mailer: invalid message, \"From\" field is absent")
 		}
+	}
 
-		for _, addr := range to {
-			if err = c.Rcpt(addr); err != nil {
-				return err
+	return parseAddress(from)
+}
+
+func getRecipients(msg *mail.Message) (recipients, bcc []string, err error) {
+	for _, field := range []string{"Bcc", "To", "Cc"} {
+		if addresses, ok := msg.Header[field]; ok {
+			for _, addr := range addresses {
+				switch field {
+				case "Bcc":
+					bcc, err = addAdress(bcc, addr)
+				default:
+					recipients, err = addAdress(recipients, addr)
+				}
+				if err != nil {
+					return recipients, bcc, err
+				}
 			}
 		}
-
-		w, err := c.Data()
-		if err != nil {
-			return err
-		}
-		_, err = w.Write(msg)
-		if err != nil {
-			return err
-		}
-		err = w.Close()
-		if err != nil {
-			return err
-		}
-
-		return c.Quit()
 	}
+
+	return recipients, bcc, nil
 }
 
-func sslDial(addr, host string, config *tls.Config) (smtpClient, error) {
-	conn, err := initTLS("tcp", addr, config)
+func addAdress(list []string, addr string) ([]string, error) {
+	addr, err := parseAddress(addr)
 	if err != nil {
-		return nil, err
+		return list, err
+	}
+	for _, a := range list {
+		if addr == a {
+			return list, nil
+		}
 	}
 
-	return newClient(conn, host)
+	return append(list, addr), nil
 }
 
-func starttlsDial(addr string, config *tls.Config) (smtpClient, error) {
-	c, err := initSMTP(addr)
-	if err != nil {
-		return c, err
+func parseAddress(field string) (string, error) {
+	a, err := mail.ParseAddress(field)
+	if a == nil {
+		return "", err
 	}
 
-	if ok, _ := c.Extension("STARTTLS"); ok {
-		return c, c.StartTLS(config)
-	}
-
-	return c, nil
-}
-
-var initSMTP = func(addr string) (smtpClient, error) {
-	return smtp.Dial(addr)
-}
-
-var initTLS = func(network, addr string, config *tls.Config) (*tls.Conn, error) {
-	return tls.Dial(network, addr, config)
-}
-
-var newClient = func(conn net.Conn, host string) (smtpClient, error) {
-	return smtp.NewClient(conn, host)
-}
-
-type smtpClient interface {
-	Extension(string) (bool, string)
-	StartTLS(*tls.Config) error
-	Auth(smtp.Auth) error
-	Mail(string) error
-	Rcpt(string) error
-	Data() (io.WriteCloser, error)
-	Quit() error
-	Close() error
+	return a.Address, err
 }
