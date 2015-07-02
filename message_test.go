@@ -1,9 +1,9 @@
 package gomail
 
 import (
+	"bytes"
 	"encoding/base64"
 	"io"
-	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -476,7 +476,7 @@ func testMessage(t *testing.T, msg *Message, bCount int, want *message) {
 }
 
 func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
-	return func(from string, to []string, msg io.Reader) error {
+	return func(from string, to []string, msg io.WriterTo) error {
 		if from != want.from {
 			t.Fatalf("Invalid from, got %q, want %q", from, want.from)
 		}
@@ -495,11 +495,12 @@ func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
 			}
 		}
 
-		content, err := ioutil.ReadAll(msg)
+		buf := new(bytes.Buffer)
+		_, err := msg.WriteTo(buf)
 		if err != nil {
 			t.Error(err)
 		}
-		got := string(content)
+		got := buf.String()
 		wantMsg := string("Mime-Version: 1.0\r\n" +
 			"Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
 			want.content)
@@ -580,7 +581,7 @@ func getBoundaries(t *testing.T, count int, msg string) []string {
 var boundaryRegExp = regexp.MustCompile("boundary=(\\w+)")
 
 func BenchmarkFull(b *testing.B) {
-	emptyFunc := func(from string, to []string, msg io.Reader) error {
+	emptyFunc := func(from string, to []string, msg io.WriterTo) error {
 		return nil
 	}
 

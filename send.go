@@ -1,20 +1,17 @@
 package gomail
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/mail"
-	"strings"
 )
 
 // Sender is the interface that wraps the Send method.
 //
 // Send sends an email to the given addresses.
 type Sender interface {
-	Send(from string, to []string, msg io.Reader) error
+	Send(from string, to []string, msg io.WriterTo) error
 }
 
 // SendCloser is the interface that groups the Send and Close methods.
@@ -27,10 +24,10 @@ type SendCloser interface {
 // The SendFunc type is an adapter to allow the use of ordinary functions as
 // email senders. If f is a function with the appropriate signature, SendFunc(f)
 // is a Sender object that calls f.
-type SendFunc func(from string, to []string, msg io.Reader) error
+type SendFunc func(from string, to []string, msg io.WriterTo) error
 
 // Send calls f(from, to, msg).
-func (f SendFunc) Send(from string, to []string, msg io.Reader) error {
+func (f SendFunc) Send(from string, to []string, msg io.WriterTo) error {
 	return f(from, to, msg)
 }
 
@@ -46,64 +43,39 @@ func Send(s Sender, msg ...*Message) error {
 }
 
 func send(s Sender, msg *Message) error {
-	message := msg.Export()
-
-	from, err := getFrom(message)
-	if err != nil {
-		return err
-	}
-	to, err := getRecipients(message)
+	from, err := msg.getFrom()
 	if err != nil {
 		return err
 	}
 
-	h := flattenHeader(message)
-	body, err := ioutil.ReadAll(message.Body)
+	to, err := msg.getRecipients()
 	if err != nil {
 		return err
 	}
 
-	mail := bytes.NewReader(append(h, body...))
-	if err := s.Send(from, to, mail); err != nil {
+	if err := s.Send(from, to, msg); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func flattenHeader(msg *mail.Message) []byte {
-	buf := getBuffer()
-	defer putBuffer(buf)
-
-	for field, value := range msg.Header {
-		if field != "Bcc" {
-			buf.WriteString(field)
-			buf.WriteString(": ")
-			buf.WriteString(strings.Join(value, ", "))
-			buf.WriteString("\r\n")
-		}
-	}
-	buf.WriteString("\r\n")
-
-	return buf.Bytes()
-}
-
-func getFrom(msg *mail.Message) (string, error) {
-	from := msg.Header.Get("Sender")
-	if from == "" {
-		from = msg.Header.Get("From")
-		if from == "" {
-			return "", errors.New("gomail: invalid message, \"From\" field is absent")
+func (msg *Message) getFrom() (string, error) {
+	from := msg.header["Sender"]
+	if len(from) == 0 {
+		from = msg.header["From"]
+		if len(from) == 0 {
+			return "", errors.New(`gomail: invalid message, "From" field is absent`)
 		}
 	}
 
-	return parseAddress(from)
+	return parseAddress(from[0])
 }
 
-func getRecipients(msg *mail.Message) ([]string, error) {
+func (msg *Message) getRecipients() ([]string, error) {
 	var list []string
 	for _, field := range []string{"To", "Cc", "Bcc"} {
-		if addresses, ok := msg.Header[field]; ok {
+		if addresses, ok := msg.header[field]; ok {
 			for _, a := range addresses {
 				addr, err := parseAddress(a)
 				if err != nil {

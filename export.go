@@ -1,18 +1,29 @@
 package gomail
 
 import (
-	"bytes"
 	"encoding/base64"
+	"errors"
 	"io"
 	"mime/multipart"
 	"mime/quotedprintable"
-	"net/mail"
 	"time"
 )
 
-// Export converts the message into a net/mail.Message.
-func (msg *Message) Export() *mail.Message {
-	w := newMessageWriter(msg)
+// WriteTo implements io.WriterTo.
+func (msg *Message) WriteTo(w io.Writer) (int64, error) {
+	mw := &messageWriter{w: w}
+	mw.writeMessage(msg)
+	return mw.n, mw.err
+}
+
+func (w *messageWriter) writeMessage(msg *Message) {
+	if _, ok := msg.header["Mime-Version"]; !ok {
+		w.writeString("Mime-Version: 1.0\r\n")
+	}
+	if _, ok := msg.header["Date"]; !ok {
+		w.writeHeader("Date", msg.FormatDate(now()))
+	}
+	w.writeHeaders(msg.header)
 
 	if msg.hasMixedPart() {
 		w.openMultipart("mixed")
@@ -26,11 +37,12 @@ func (msg *Message) Export() *mail.Message {
 		w.openMultipart("alternative")
 	}
 	for _, part := range msg.parts {
-		h := make(map[string][]string)
-		h["Content-Type"] = []string{part.contentType + "; charset=" + msg.charset}
-		h["Content-Transfer-Encoding"] = []string{string(msg.encoding)}
-
-		w.write(h, part.body.Bytes(), msg.encoding)
+		contentType := part.contentType + "; charset=" + msg.charset
+		w.writeHeaders(map[string][]string{
+			"Content-Type":              []string{contentType},
+			"Content-Transfer-Encoding": []string{string(msg.encoding)},
+		})
+		w.writeBody(part.body.Bytes(), msg.encoding)
 	}
 	if msg.hasAlternativePart() {
 		w.closeMultipart()
@@ -45,8 +57,6 @@ func (msg *Message) Export() *mail.Message {
 	if msg.hasMixedPart() {
 		w.closeMultipart()
 	}
-
-	return w.export()
 }
 
 func (msg *Message) hasMixedPart() bool {
@@ -61,52 +71,33 @@ func (msg *Message) hasAlternativePart() bool {
 	return len(msg.parts) > 1
 }
 
-// messageWriter helps converting the message into a net/mail.Message
 type messageWriter struct {
-	header     map[string][]string
-	buf        *bytes.Buffer
+	w          io.Writer
+	n          int64
 	writers    [3]*multipart.Writer
 	partWriter io.Writer
 	depth      uint8
+	err        error
 }
-
-func newMessageWriter(msg *Message) *messageWriter {
-	// We copy the header so Export does not modify the message
-	header := make(map[string][]string, len(msg.header)+2)
-	for k, v := range msg.header {
-		header[k] = v
-	}
-
-	if _, ok := header["Mime-Version"]; !ok {
-		header["Mime-Version"] = []string{"1.0"}
-	}
-	if _, ok := header["Date"]; !ok {
-		header["Date"] = []string{msg.FormatDate(now())}
-	}
-
-	return &messageWriter{header: header, buf: new(bytes.Buffer)}
-}
-
-// Stubbed out for testing.
-var now = time.Now
 
 func (w *messageWriter) openMultipart(mimeType string) {
-	w.writers[w.depth] = multipart.NewWriter(w.buf)
-	contentType := "multipart/" + mimeType + "; boundary=" + w.writers[w.depth].Boundary()
+	mw := multipart.NewWriter(w)
+	contentType := "multipart/" + mimeType + "; boundary=" + mw.Boundary()
+	w.writers[w.depth] = mw
 
 	if w.depth == 0 {
-		w.header["Content-Type"] = []string{contentType}
+		w.writeHeader("Content-Type", contentType)
+		w.writeString("\r\n")
 	} else {
-		h := make(map[string][]string)
-		h["Content-Type"] = []string{contentType}
-		w.createPart(h)
+		w.createPart(map[string][]string{
+			"Content-Type": []string{contentType},
+		})
 	}
 	w.depth++
 }
 
 func (w *messageWriter) createPart(h map[string][]string) {
-	// No need to check the error since the underlying writer is a bytes.Buffer
-	w.partWriter, _ = w.writers[w.depth-1].CreatePart(h)
+	w.partWriter, w.err = w.writers[w.depth-1].CreatePart(h)
 }
 
 func (w *messageWriter) closeMultipart() {
@@ -131,20 +122,53 @@ func (w *messageWriter) addFiles(files []*File, isAttachment bool) {
 				h["Content-ID"] = []string{"<" + f.Name + ">"}
 			}
 		}
-
-		w.write(h, f.Content, Base64)
+		w.writeHeaders(h)
+		w.writeBody(f.Content, Base64)
 	}
 }
 
-func (w *messageWriter) write(h map[string][]string, body []byte, enc Encoding) {
-	w.writeHeader(h)
-	w.writeBody(body, enc)
+func (w *messageWriter) Write(p []byte) (int, error) {
+	if w.err != nil {
+		return 0, errors.New("gomail: cannot write as writer is in error")
+	}
+
+	var n int
+	n, w.err = w.w.Write(p)
+	w.n += int64(n)
+	return n, w.err
 }
 
-func (w *messageWriter) writeHeader(h map[string][]string) {
+func (w *messageWriter) writeString(s string) {
+	n, _ := io.WriteString(w.w, s)
+	w.n += int64(n)
+}
+
+func (w *messageWriter) writeStrings(a []string, sep string) {
+	if len(a) > 0 {
+		w.writeString(a[0])
+		if len(a) == 1 {
+			return
+		}
+	}
+	for _, s := range a[1:] {
+		w.writeString(sep)
+		w.writeString(s)
+	}
+}
+
+func (w *messageWriter) writeHeader(k string, v ...string) {
+	w.writeString(k)
+	w.writeString(": ")
+	w.writeStrings(v, ", ")
+	w.writeString("\r\n")
+}
+
+func (w *messageWriter) writeHeaders(h map[string][]string) {
 	if w.depth == 0 {
-		for field, value := range h {
-			w.header[field] = value
+		for k, v := range h {
+			if k != "Bcc" {
+				w.writeHeader(k, v...)
+			}
 		}
 	} else {
 		w.createPart(h)
@@ -154,28 +178,23 @@ func (w *messageWriter) writeHeader(h map[string][]string) {
 func (w *messageWriter) writeBody(body []byte, enc Encoding) {
 	var subWriter io.Writer
 	if w.depth == 0 {
-		subWriter = w.buf
+		w.writeString("\r\n")
+		subWriter = w.w
 	} else {
 		subWriter = w.partWriter
 	}
 
-	// The errors returned by writers are not checked since these writers cannot
-	// return errors.
 	if enc == Base64 {
-		writer := base64.NewEncoder(base64.StdEncoding, newBase64LineWriter(subWriter))
-		writer.Write(body)
-		writer.Close()
+		wc := base64.NewEncoder(base64.StdEncoding, newBase64LineWriter(subWriter))
+		wc.Write(body)
+		wc.Close()
 	} else if enc == Unencoded {
 		subWriter.Write(body)
 	} else {
-		writer := quotedprintable.NewWriter(subWriter)
-		writer.Write(body)
-		writer.Close()
+		wc := quotedprintable.NewWriter(subWriter)
+		wc.Write(body)
+		wc.Close()
 	}
-}
-
-func (w *messageWriter) export() *mail.Message {
-	return &mail.Message{Header: w.header, Body: w.buf}
 }
 
 // As required by RFC 2045, 6.7. (page 21) for quoted-printable, and
@@ -207,3 +226,6 @@ func (w *base64LineWriter) Write(p []byte) (int, error) {
 
 	return n + len(p), nil
 }
+
+// Stubbed out for testing.
+var now = time.Now

@@ -122,7 +122,7 @@ type smtpSender struct {
 	smtpClient
 }
 
-func (c *smtpSender) Send(from string, to []string, msg io.Reader) error {
+func (c *smtpSender) Send(from string, to []string, msg io.WriterTo) error {
 	if err := c.Mail(from); err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (c *smtpSender) Send(from string, to []string, msg io.Reader) error {
 		return err
 	}
 
-	if _, err = io.Copy(w, msg); err != nil {
+	if _, err = msg.WriteTo(w); err != nil {
 		w.Close()
 		return err
 	}

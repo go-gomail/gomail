@@ -1,8 +1,8 @@
 package gomail
 
 import (
+	"bytes"
 	"io"
-	"io/ioutil"
 	"reflect"
 	"testing"
 )
@@ -24,7 +24,7 @@ const (
 
 type mockSender SendFunc
 
-func (s mockSender) Send(from string, to []string, msg io.Reader) error {
+func (s mockSender) Send(from string, to []string, msg io.WriterTo) error {
 	return s(from, to, msg)
 }
 
@@ -60,7 +60,7 @@ func getTestMessage() *Message {
 }
 
 func stubSend(t *testing.T, wantFrom string, wantTo []string, wantBody string) mockSender {
-	return func(from string, to []string, msg io.Reader) error {
+	return func(from string, to []string, msg io.WriterTo) error {
 		if from != wantFrom {
 			t.Errorf("invalid from, got %q, want %q", from, wantFrom)
 		}
@@ -68,11 +68,12 @@ func stubSend(t *testing.T, wantFrom string, wantTo []string, wantBody string) m
 			t.Errorf("invalid to, got %v, want %v", to, wantTo)
 		}
 
-		content, err := ioutil.ReadAll(msg)
+		buf := new(bytes.Buffer)
+		_, err := msg.WriteTo(buf)
 		if err != nil {
 			t.Fatal(err)
 		}
-		compareBodies(t, string(content), wantBody)
+		compareBodies(t, buf.String(), wantBody)
 
 		return nil
 	}

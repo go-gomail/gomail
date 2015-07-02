@@ -1,6 +1,7 @@
 package gomail
 
 import (
+	"bytes"
 	"crypto/tls"
 	"io"
 	"net"
@@ -173,15 +174,19 @@ func (c *mockClient) do(cmd string) {
 type mockWriter struct {
 	want string
 	c    *mockClient
+	buf  bytes.Buffer
 }
 
 func (w *mockWriter) Write(p []byte) (int, error) {
-	w.c.do("Write message")
-	compareBodies(w.c.t, string(p), w.want)
+	if w.buf.Len() == 0 {
+		w.c.do("Write message")
+	}
+	w.buf.Write(p)
 	return len(p), nil
 }
 
 func (w *mockWriter) Close() error {
+	compareBodies(w.c.t, w.buf.String(), w.want)
 	w.c.do("Close writer")
 	return nil
 }
