@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// WriteTo implements io.WriterTo.
+// WriteTo implements io.WriterTo. It dumps the whole message into w.
 func (msg *Message) WriteTo(w io.Writer) (int64, error) {
 	mw := &messageWriter{w: w}
 	mw.writeMessage(msg)
