@@ -38,7 +38,7 @@ func TestMessage(t *testing.T) {
 	})
 	msg.SetBody("text/plain", "¡Hola, señor!")
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to: []string{
 			"to@example.com",
@@ -69,7 +69,7 @@ func TestBodyWriter(t *testing.T) {
 	w := msg.GetBodyWriter("text/plain")
 	w.Write([]byte("Test message"))
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -92,7 +92,7 @@ func TestCustomMessage(t *testing.T) {
 	})
 	msg.SetBody("text/html", "¡Hola, señor!")
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -116,7 +116,7 @@ func TestUnencodedMessage(t *testing.T) {
 	})
 	msg.SetBody("text/html", "¡Hola, señor!")
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -142,38 +142,12 @@ func TestRecipients(t *testing.T) {
 	})
 	msg.SetBody("text/plain", "Test message")
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
-		to:   []string{"to@example.com", "cc@example.com"},
+		to:   []string{"to@example.com", "cc@example.com", "bcc1@example.com", "bcc2@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
 			"Cc: cc@example.com\r\n" +
-			"Subject: Hello!\r\n" +
-			"Content-Type: text/plain; charset=UTF-8\r\n" +
-			"Content-Transfer-Encoding: quoted-printable\r\n" +
-			"\r\n" +
-			"Test message",
-	}
-	wantBcc1 := message{
-		from: "from@example.com",
-		to:   []string{"bcc1@example.com"},
-		content: "From: from@example.com\r\n" +
-			"To: to@example.com\r\n" +
-			"Cc: cc@example.com\r\n" +
-			"Bcc: bcc1@example.com\r\n" +
-			"Subject: Hello!\r\n" +
-			"Content-Type: text/plain; charset=UTF-8\r\n" +
-			"Content-Transfer-Encoding: quoted-printable\r\n" +
-			"\r\n" +
-			"Test message",
-	}
-	wantBcc2 := message{
-		from: "from@example.com",
-		to:   []string{"bcc2@example.com"},
-		content: "From: from@example.com\r\n" +
-			"To: to@example.com\r\n" +
-			"Cc: cc@example.com\r\n" +
-			"Bcc: bcc2@example.com\r\n" +
 			"Subject: Hello!\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
 			"Content-Transfer-Encoding: quoted-printable\r\n" +
@@ -181,7 +155,7 @@ func TestRecipients(t *testing.T) {
 			"Test message",
 	}
 
-	testMessage(t, msg, 0, want, wantBcc1, wantBcc2)
+	testMessage(t, msg, 0, want)
 }
 
 func TestAlternative(t *testing.T) {
@@ -191,7 +165,7 @@ func TestAlternative(t *testing.T) {
 	msg.SetBody("text/plain", "¡Hola, señor!")
 	msg.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -228,7 +202,7 @@ func TestAttachmentOnly(t *testing.T) {
 	}
 	msg.Attach(f)
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -250,7 +224,7 @@ func TestAttachment(t *testing.T) {
 	msg.SetBody("text/plain", "Test")
 	msg.Attach(CreateFile("test.pdf", []byte("Content")))
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -281,7 +255,7 @@ func TestAttachmentsOnly(t *testing.T) {
 	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
 	msg.Attach(CreateFile("test.zip", []byte("Content 2")))
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -314,7 +288,7 @@ func TestAttachments(t *testing.T) {
 	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
 	msg.Attach(CreateFile("test.zip", []byte("Content 2")))
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -354,7 +328,7 @@ func TestEmbedded(t *testing.T) {
 	msg.Embed(CreateFile("image2.jpg", []byte("Content 2")))
 	msg.SetBody("text/plain", "Test")
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -395,7 +369,7 @@ func TestFullMessage(t *testing.T) {
 	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
 	msg.Embed(CreateFile("image.jpg", []byte("Content 2")))
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -454,7 +428,7 @@ func TestQpLineLength(t *testing.T) {
 			strings.Repeat("0", 75)+"\r\n"+
 			strings.Repeat("0", 76)+"\n")
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -480,7 +454,7 @@ func TestBase64LineLength(t *testing.T) {
 	msg.SetHeader("To", "to@example.com")
 	msg.SetBody("text/plain", strings.Repeat("0", 58))
 
-	want := message{
+	want := &message{
 		from: "from@example.com",
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
@@ -494,21 +468,15 @@ func TestBase64LineLength(t *testing.T) {
 	testMessage(t, msg, 0, want)
 }
 
-func testMessage(t *testing.T, msg *Message, bCount int, emails ...message) {
-	err := Send(stubSendMail(t, bCount, emails...), msg)
+func testMessage(t *testing.T, msg *Message, bCount int, want *message) {
+	err := Send(stubSendMail(t, bCount, want), msg)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func stubSendMail(t *testing.T, bCount int, emails ...message) SendFunc {
-	i := 0
+func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
 	return func(from string, to []string, msg io.Reader) error {
-		if i > len(emails) {
-			t.Fatalf("Only %d mails should be sent", len(emails))
-		}
-		want := emails[i]
-
 		if from != want.from {
 			t.Fatalf("Invalid from, got %q, want %q", from, want.from)
 		}
@@ -541,7 +509,6 @@ func stubSendMail(t *testing.T, bCount int, emails ...message) SendFunc {
 				wantMsg = strings.Replace(wantMsg, "_BOUNDARY_"+strconv.Itoa(i+1)+"_", b, -1)
 			}
 		}
-		i++
 
 		compareBodies(t, got, wantMsg)
 

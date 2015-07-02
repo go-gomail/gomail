@@ -52,34 +52,26 @@ func send(s Sender, msg *Message) error {
 	if err != nil {
 		return err
 	}
-	recipients, bcc, err := getRecipients(message)
+	to, err := getRecipients(message)
 	if err != nil {
 		return err
 	}
 
-	h := flattenHeader(message, "")
+	h := flattenHeader(message)
 	body, err := ioutil.ReadAll(message.Body)
 	if err != nil {
 		return err
 	}
 
 	mail := bytes.NewReader(append(h, body...))
-	if err := s.Send(from, recipients, mail); err != nil {
+	if err := s.Send(from, to, mail); err != nil {
 		return err
-	}
-
-	for _, to := range bcc {
-		h = flattenHeader(message, to)
-		mail = bytes.NewReader(append(h, body...))
-		if err := s.Send(from, []string{to}, mail); err != nil {
-			return err
-		}
 	}
 
 	return nil
 }
 
-func flattenHeader(msg *mail.Message, bcc string) []byte {
+func flattenHeader(msg *mail.Message) []byte {
 	buf := getBuffer()
 	defer putBuffer(buf)
 
@@ -89,15 +81,6 @@ func flattenHeader(msg *mail.Message, bcc string) []byte {
 			buf.WriteString(": ")
 			buf.WriteString(strings.Join(value, ", "))
 			buf.WriteString("\r\n")
-		} else if bcc != "" {
-			for _, to := range value {
-				if strings.Contains(to, bcc) {
-					buf.WriteString(field)
-					buf.WriteString(": ")
-					buf.WriteString(to)
-					buf.WriteString("\r\n")
-				}
-			}
 		}
 	}
 	buf.WriteString("\r\n")
@@ -117,38 +100,31 @@ func getFrom(msg *mail.Message) (string, error) {
 	return parseAddress(from)
 }
 
-func getRecipients(msg *mail.Message) (recipients, bcc []string, err error) {
-	for _, field := range []string{"Bcc", "To", "Cc"} {
+func getRecipients(msg *mail.Message) ([]string, error) {
+	var list []string
+	for _, field := range []string{"To", "Cc", "Bcc"} {
 		if addresses, ok := msg.Header[field]; ok {
-			for _, addr := range addresses {
-				switch field {
-				case "Bcc":
-					bcc, err = addAdress(bcc, addr)
-				default:
-					recipients, err = addAdress(recipients, addr)
-				}
+			for _, a := range addresses {
+				addr, err := parseAddress(a)
 				if err != nil {
-					return recipients, bcc, err
+					return nil, err
 				}
+				list = addAdress(list, addr)
 			}
 		}
 	}
 
-	return recipients, bcc, nil
+	return list, nil
 }
 
-func addAdress(list []string, addr string) ([]string, error) {
-	addr, err := parseAddress(addr)
-	if err != nil {
-		return list, err
-	}
+func addAdress(list []string, addr string) []string {
 	for _, a := range list {
 		if addr == a {
-			return list, nil
+			return list
 		}
 	}
 
-	return append(list, addr), nil
+	return append(list, addr)
 }
 
 func parseAddress(field string) (string, error) {
