@@ -28,7 +28,7 @@ type header map[string][]string
 
 type part struct {
 	contentType string
-	body        *bytes.Buffer
+	copier      func(io.Writer) error
 }
 
 // NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
@@ -170,12 +170,15 @@ func (msg *Message) SetBody(contentType, body string) {
 	msg.parts = []part{
 		part{
 			contentType: contentType,
-			body:        bytes.NewBufferString(body),
+			copier: func(w io.Writer) error {
+				_, err := io.WriteString(w, body)
+				return err
+			},
 		},
 	}
 }
 
-// AddAlternative adds an alternative body to the message. Commonly used to
+// AddAlternative adds an alternative part to the message. Commonly used to
 // send HTML emails that default to the plain text version for backward
 // compatibility.
 //
@@ -189,29 +192,30 @@ func (msg *Message) AddAlternative(contentType, body string) {
 	msg.parts = append(msg.parts,
 		part{
 			contentType: contentType,
-			body:        bytes.NewBufferString(body),
+			copier: func(w io.Writer) error {
+				_, err := io.WriteString(w, body)
+				return err
+			},
 		},
 	)
 }
 
-// GetBodyWriter gets a writer that writes to the body. It can be useful with
-// the templates from packages text/template or html/template.
+// AddAlternativeWriter adds an alternative part to the message. It can be
+// useful with the text/template and html/template packages.
 //
 // Example:
 //
-//	w := msg.GetBodyWriter("text/plain")
 //	t := template.Must(template.New("example").Parse("Hello {{.}}!"))
-//	t.Execute(w, "Bob")
-func (msg *Message) GetBodyWriter(contentType string) io.Writer {
-	buf := new(bytes.Buffer)
-	msg.parts = append(msg.parts,
+//	msg.AddAlternativeWriter("text/plain", func(w io.Writer) error {
+//		return t.Execute(w, "Bob")
+//	})
+func (msg *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
+	msg.parts = []part{
 		part{
 			contentType: contentType,
-			body:        buf,
+			copier:      f,
 		},
-	)
-
-	return buf
+	}
 }
 
 // A File represents a file that can be attached or embedded in an email.

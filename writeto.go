@@ -42,7 +42,7 @@ func (w *messageWriter) writeMessage(msg *Message) {
 			"Content-Type":              []string{contentType},
 			"Content-Transfer-Encoding": []string{string(msg.encoding)},
 		})
-		w.writeBody(part.body.Bytes(), msg.encoding)
+		w.writeBody(part.copier, msg.encoding)
 	}
 	if msg.hasAlternativePart() {
 		w.closeMultipart()
@@ -123,7 +123,10 @@ func (w *messageWriter) addFiles(files []*File, isAttachment bool) {
 			}
 		}
 		w.writeHeaders(h)
-		w.writeBody(f.Content, Base64)
+		w.writeBody(func(w io.Writer) error {
+			_, err := w.Write(f.Content)
+			return err
+		}, Base64)
 	}
 }
 
@@ -175,7 +178,7 @@ func (w *messageWriter) writeHeaders(h map[string][]string) {
 	}
 }
 
-func (w *messageWriter) writeBody(body []byte, enc Encoding) {
+func (w *messageWriter) writeBody(f func(io.Writer) error, enc Encoding) {
 	var subWriter io.Writer
 	if w.depth == 0 {
 		w.writeString("\r\n")
@@ -186,13 +189,13 @@ func (w *messageWriter) writeBody(body []byte, enc Encoding) {
 
 	if enc == Base64 {
 		wc := base64.NewEncoder(base64.StdEncoding, newBase64LineWriter(subWriter))
-		wc.Write(body)
+		w.err = f(wc)
 		wc.Close()
 	} else if enc == Unencoded {
-		subWriter.Write(body)
+		w.err = f(subWriter)
 	} else {
 		wc := quotedprintable.NewWriter(subWriter)
-		wc.Write(body)
+		w.err = f(wc)
 		wc.Close()
 	}
 }

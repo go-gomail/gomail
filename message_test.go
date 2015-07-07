@@ -66,8 +66,10 @@ func TestBodyWriter(t *testing.T) {
 	msg := NewMessage()
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
-	w := msg.GetBodyWriter("text/plain")
-	w.Write([]byte("Test message"))
+	msg.AddAlternativeWriter("text/plain", func(w io.Writer) error {
+		_, err := w.Write([]byte("Test message"))
+		return err
+	})
 
 	want := &message{
 		from: "from@example.com",
