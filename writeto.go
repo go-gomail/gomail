@@ -4,8 +4,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
+	"mime"
 	"mime/multipart"
 	"mime/quotedprintable"
+	"path/filepath"
 	"time"
 )
 
@@ -109,24 +111,35 @@ func (w *messageWriter) closeMultipart() {
 
 func (w *messageWriter) addFiles(files []*File, isAttachment bool) {
 	for _, f := range files {
-		h := make(map[string][]string)
-		h["Content-Type"] = []string{f.MimeType + "; name=\"" + f.Name + "\""}
-		h["Content-Transfer-Encoding"] = []string{string(Base64)}
-		if isAttachment {
-			h["Content-Disposition"] = []string{"attachment; filename=\"" + f.Name + "\""}
-		} else {
-			h["Content-Disposition"] = []string{"inline; filename=\"" + f.Name + "\""}
-			if f.ContentID != "" {
-				h["Content-ID"] = []string{"<" + f.ContentID + ">"}
+		if _, ok := f.Header["Content-Type"]; !ok {
+			mediaType := mime.TypeByExtension(filepath.Ext(f.Name))
+			if mediaType == "" {
+				mediaType = "application/octet-stream"
+			}
+			f.setHeader("Content-Type", mediaType+`; name="`+f.Name+`"`)
+		}
+
+		if _, ok := f.Header["Content-Transfer-Encoding"]; !ok {
+			f.setHeader("Content-Transfer-Encoding", string(Base64))
+		}
+
+		if _, ok := f.Header["Content-Disposition"]; !ok {
+			var disp string
+			if isAttachment {
+				disp = "attachment"
 			} else {
-				h["Content-ID"] = []string{"<" + f.Name + ">"}
+				disp = "inline"
+			}
+			f.setHeader("Content-Disposition", disp+`; filename="`+f.Name+`"`)
+		}
+
+		if !isAttachment {
+			if _, ok := f.Header["Content-ID"]; !ok {
+				f.setHeader("Content-ID", "<"+f.Name+">")
 			}
 		}
-		w.writeHeaders(h)
-		w.writeBody(func(w io.Writer) error {
-			_, err := w.Write(f.Content)
-			return err
-		}, Base64)
+		w.writeHeaders(f.Header)
+		w.writeBody(f.Copier, Base64)
 	}
 }
 

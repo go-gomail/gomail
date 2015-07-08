@@ -198,11 +198,7 @@ func TestAttachmentOnly(t *testing.T) {
 	msg := NewMessage()
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
-	f, err := OpenFile("/tmp/test.pdf")
-	if err != nil {
-		panic(err)
-	}
-	msg.Attach(f)
+	msg.Attach(testFile("/tmp/test.pdf"))
 
 	want := &message{
 		from: "from@example.com",
@@ -224,7 +220,7 @@ func TestAttachment(t *testing.T) {
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
 	msg.SetBody("text/plain", "Test")
-	msg.Attach(CreateFile("test.pdf", []byte("Content")))
+	msg.Attach(testFile("/tmp/test.pdf"))
 
 	want := &message{
 		from: "from@example.com",
@@ -243,7 +239,7 @@ func TestAttachment(t *testing.T) {
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 
@@ -254,8 +250,8 @@ func TestAttachmentsOnly(t *testing.T) {
 	msg := NewMessage()
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
-	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
-	msg.Attach(CreateFile("test.zip", []byte("Content 2")))
+	msg.Attach(testFile("/tmp/test.pdf"))
+	msg.Attach(testFile("/tmp/test.zip"))
 
 	want := &message{
 		from: "from@example.com",
@@ -269,13 +265,13 @@ func TestAttachmentsOnly(t *testing.T) {
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 1")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: application/zip; name=\"test.zip\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.zip\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 2")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.zip")) + "\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 
@@ -287,8 +283,8 @@ func TestAttachments(t *testing.T) {
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
 	msg.SetBody("text/plain", "Test")
-	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
-	msg.Attach(CreateFile("test.zip", []byte("Content 2")))
+	msg.Attach(testFile("/tmp/test.pdf"))
+	msg.Attach(testFile("/tmp/test.zip"))
 
 	want := &message{
 		from: "from@example.com",
@@ -307,13 +303,13 @@ func TestAttachments(t *testing.T) {
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 1")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: application/zip; name=\"test.zip\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.zip\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 2")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.zip")) + "\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 
@@ -324,10 +320,10 @@ func TestEmbedded(t *testing.T) {
 	msg := NewMessage()
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")
-	f := CreateFile("image1.jpg", []byte("Content 1"))
-	f.ContentID = "test-content-id"
+	f := testFile("image1.jpg")
+	f.Header["Content-ID"] = []string{"<test-content-id>"}
 	msg.Embed(f)
-	msg.Embed(CreateFile("image2.jpg", []byte("Content 2")))
+	msg.Embed(testFile("image2.jpg"))
 	msg.SetBody("text/plain", "Test")
 
 	want := &message{
@@ -348,14 +344,14 @@ func TestEmbedded(t *testing.T) {
 			"Content-ID: <test-content-id>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 1")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of image1.jpg")) + "\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: image/jpeg; name=\"image2.jpg\"\r\n" +
 			"Content-Disposition: inline; filename=\"image2.jpg\"\r\n" +
 			"Content-ID: <image2.jpg>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 2")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of image2.jpg")) + "\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 
@@ -368,8 +364,8 @@ func TestFullMessage(t *testing.T) {
 	msg.SetHeader("To", "to@example.com")
 	msg.SetBody("text/plain", "¡Hola, señor!")
 	msg.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
-	msg.Attach(CreateFile("test.pdf", []byte("Content 1")))
-	msg.Embed(CreateFile("image.jpg", []byte("Content 2")))
+	msg.Attach(testFile("test.pdf"))
+	msg.Embed(testFile("image.jpg"))
 
 	want := &message{
 		from: "from@example.com",
@@ -402,7 +398,7 @@ func TestFullMessage(t *testing.T) {
 			"Content-ID: <image.jpg>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 2")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of image.jpg")) + "\r\n" +
 			"--_BOUNDARY_2_--\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
@@ -410,7 +406,7 @@ func TestFullMessage(t *testing.T) {
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content 1")) + "\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 
@@ -582,6 +578,15 @@ func getBoundaries(t *testing.T, count int, msg string) []string {
 
 var boundaryRegExp = regexp.MustCompile("boundary=(\\w+)")
 
+func testFile(name string) *File {
+	f := NewFile(name)
+	f.Copier = func(w io.Writer) error {
+		_, err := w.Write([]byte("Content of " + filepath.Base(f.Name)))
+		return err
+	}
+	return f
+}
+
 func BenchmarkFull(b *testing.B) {
 	emptyFunc := func(from string, to []string, msg io.WriterTo) error {
 		return nil
@@ -598,8 +603,8 @@ func BenchmarkFull(b *testing.B) {
 		})
 		msg.SetBody("text/plain", "¡Hola, señor!")
 		msg.AddAlternative("text/html", "<p>¡Hola, señor!</p>")
-		msg.Attach(CreateFile("benchmark.txt", []byte("Benchmark")))
-		msg.Embed(CreateFile("benchmark.jpg", []byte("Benchmark")))
+		msg.Attach(testFile("benchmark.txt"))
+		msg.Embed(testFile("benchmark.jpg"))
 
 		if err := Send(SendFunc(emptyFunc), msg); err != nil {
 			panic(err)

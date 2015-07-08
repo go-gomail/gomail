@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"mime"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -220,36 +221,38 @@ func (msg *Message) AddAlternativeWriter(contentType string, f func(io.Writer) e
 
 // A File represents a file that can be attached or embedded in an email.
 type File struct {
-	Name      string
-	MimeType  string
-	Content   []byte
-	ContentID string
+	// Name represents the base name of the file. If the file is attached to the
+	// message it is the name of the attachment.
+	Name string
+	// Header represents the MIME header of the message part that contains the
+	// file content.
+	Header map[string][]string
+	// Copier is a function run when the message is sent. It should copy the
+	// content of the file to w.
+	Copier func(w io.Writer) error
 }
 
-// OpenFile opens a file on disk to create a gomail.File.
-func OpenFile(filename string) (*File, error) {
-	content, err := readFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	f := CreateFile(filepath.Base(filename), content)
-
-	return f, nil
-}
-
-// CreateFile creates a gomail.File from the given name and content.
-func CreateFile(name string, content []byte) *File {
-	mimeType := mime.TypeByExtension(filepath.Ext(name))
-	if mimeType == "" {
-		mimeType = "application/octet-stream"
-	}
-
+// NewFile creates a File from the given filename.
+func NewFile(filename string) *File {
 	return &File{
-		Name:     name,
-		MimeType: mimeType,
-		Content:  content,
+		Name:   filepath.Base(filename),
+		Header: make(map[string][]string),
+		Copier: func(w io.Writer) error {
+			h, err := os.Open(filename)
+			if err != nil {
+				return err
+			}
+			if _, err := io.Copy(w, h); err != nil {
+				h.Close()
+				return err
+			}
+			return h.Close()
+		},
 	}
+}
+
+func (f *File) setHeader(field string, value ...string) {
+	f.Header[field] = value
 }
 
 // Attach attaches the files to the email.
