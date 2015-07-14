@@ -81,7 +81,7 @@ func (msg *Message) getRecipients() ([]string, error) {
 				if err != nil {
 					return nil, err
 				}
-				list = addAdress(list, addr)
+				list = addAddress(list, addr)
 			}
 		}
 	}
@@ -89,7 +89,7 @@ func (msg *Message) getRecipients() ([]string, error) {
 	return list, nil
 }
 
-func addAdress(list []string, addr string) []string {
+func addAddress(list []string, addr string) []string {
 	for _, a := range list {
 		if addr == a {
 			return list
