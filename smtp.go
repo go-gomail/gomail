@@ -108,14 +108,14 @@ func addr(host string, port int) string {
 
 // DialAndSend opens a connection to the SMTP server, sends the given emails and
 // closes the connection.
-func (d *Dialer) DialAndSend(msg ...*Message) error {
+func (d *Dialer) DialAndSend(m ...*Message) error {
 	s, err := d.Dial()
 	if err != nil {
 		return err
 	}
 	defer s.Close()
 
-	return Send(s, msg...)
+	return Send(s, m...)
 }
 
 type smtpSender struct {

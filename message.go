@@ -34,52 +34,52 @@ type part struct {
 // NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
 // by default.
 func NewMessage(settings ...MessageSetting) *Message {
-	msg := &Message{
+	m := &Message{
 		header:   make(header),
 		charset:  "UTF-8",
 		encoding: QuotedPrintable,
 	}
 
-	msg.applySettings(settings)
+	m.applySettings(settings)
 
-	if msg.encoding == Base64 {
-		msg.hEncoder = mime.BEncoding
+	if m.encoding == Base64 {
+		m.hEncoder = mime.BEncoding
 	} else {
-		msg.hEncoder = mime.QEncoding
+		m.hEncoder = mime.QEncoding
 	}
 
-	return msg
+	return m
 }
 
 // Reset resets the message so it can be reused. The message keeps its previous
 // settings so it is in the same state that after a call to NewMessage.
-func (msg *Message) Reset() {
-	for k := range msg.header {
-		delete(msg.header, k)
+func (m *Message) Reset() {
+	for k := range m.header {
+		delete(m.header, k)
 	}
-	msg.parts = nil
-	msg.attachments = nil
-	msg.embedded = nil
+	m.parts = nil
+	m.attachments = nil
+	m.embedded = nil
 }
 
-func (msg *Message) applySettings(settings []MessageSetting) {
+func (m *Message) applySettings(settings []MessageSetting) {
 	for _, s := range settings {
-		s(msg)
+		s(m)
 	}
 }
 
 // A MessageSetting can be used as an argument in NewMessage to configure an
 // email.
-type MessageSetting func(msg *Message)
+type MessageSetting func(m *Message)
 
 // SetCharset is a message setting to set the charset of the email.
 //
 // Example:
 //
-//	msg := gomail.NewMessage(SetCharset("ISO-8859-1"))
+//	m := gomail.NewMessage(SetCharset("ISO-8859-1"))
 func SetCharset(charset string) MessageSetting {
-	return func(msg *Message) {
-		msg.charset = charset
+	return func(m *Message) {
+		m.charset = charset
 	}
 }
 
@@ -87,10 +87,10 @@ func SetCharset(charset string) MessageSetting {
 //
 // Example:
 //
-//	msg := gomail.NewMessage(SetEncoding(gomail.Base64))
+//	m := gomail.NewMessage(SetEncoding(gomail.Base64))
 func SetEncoding(enc Encoding) MessageSetting {
-	return func(msg *Message) {
-		msg.encoding = enc
+	return func(m *Message) {
+		m.encoding = enc
 	}
 }
 
@@ -109,57 +109,57 @@ const (
 )
 
 // SetHeader sets a value to the given header field.
-func (msg *Message) SetHeader(field string, value ...string) {
+func (m *Message) SetHeader(field string, value ...string) {
 	for i := range value {
-		value[i] = msg.encodeHeader(value[i])
+		value[i] = m.encodeHeader(value[i])
 	}
-	msg.header[field] = value
+	m.header[field] = value
 }
 
 // SetHeaders sets the message headers.
 //
 // Example:
 //
-//	msg.SetHeaders(map[string][]string{
+//	m.SetHeaders(map[string][]string{
 //		"From":    {"alex@example.com"},
 //		"To":      {"bob@example.com", "cora@example.com"},
 //		"Subject": {"Hello"},
 //	})
-func (msg *Message) SetHeaders(h map[string][]string) {
+func (m *Message) SetHeaders(h map[string][]string) {
 	for k, v := range h {
-		msg.SetHeader(k, v...)
+		m.SetHeader(k, v...)
 	}
 }
 
 // SetAddressHeader sets an address to the given header field.
-func (msg *Message) SetAddressHeader(field, address, name string) {
-	msg.header[field] = []string{msg.FormatAddress(address, name)}
+func (m *Message) SetAddressHeader(field, address, name string) {
+	m.header[field] = []string{m.FormatAddress(address, name)}
 }
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
-func (msg *Message) FormatAddress(address, name string) string {
-	enc := msg.encodeHeader(name)
+func (m *Message) FormatAddress(address, name string) string {
+	enc := m.encodeHeader(name)
 	if enc == name {
-		msg.buf.WriteByte('"')
+		m.buf.WriteByte('"')
 		for i := 0; i < len(name); i++ {
 			b := name[i]
 			if b == '\\' || b == '"' {
-				msg.buf.WriteByte('\\')
+				m.buf.WriteByte('\\')
 			}
-			msg.buf.WriteByte(b)
+			m.buf.WriteByte(b)
 		}
-		msg.buf.WriteByte('"')
+		m.buf.WriteByte('"')
 	} else if hasSpecials(name) {
-		msg.buf.WriteString(mime.BEncoding.Encode(msg.charset, name))
+		m.buf.WriteString(mime.BEncoding.Encode(m.charset, name))
 	} else {
-		msg.buf.WriteString(enc)
+		m.buf.WriteString(enc)
 	}
-	msg.buf.WriteString(" <")
-	msg.buf.WriteString(address)
-	msg.buf.WriteByte('>')
+	m.buf.WriteString(" <")
+	m.buf.WriteString(address)
+	m.buf.WriteByte('>')
 
-	addr := msg.buf.String()
-	msg.buf.Reset()
+	addr := m.buf.String()
+	m.buf.Reset()
 	return addr
 }
 
@@ -174,33 +174,33 @@ func hasSpecials(text string) bool {
 	return false
 }
 
-func (msg *Message) encodeHeader(value string) string {
-	return msg.hEncoder.Encode(msg.charset, value)
+func (m *Message) encodeHeader(value string) string {
+	return m.hEncoder.Encode(m.charset, value)
 }
 
 // SetDateHeader sets a date to the given header field.
-func (msg *Message) SetDateHeader(field string, date time.Time) {
-	msg.header[field] = []string{msg.FormatDate(date)}
+func (m *Message) SetDateHeader(field string, date time.Time) {
+	m.header[field] = []string{m.FormatDate(date)}
 }
 
 // FormatDate formats a date as a valid RFC 5322 date.
-func (msg *Message) FormatDate(date time.Time) string {
+func (m *Message) FormatDate(date time.Time) string {
 	return date.Format(time.RFC1123Z)
 }
 
 // GetHeader gets a header field.
-func (msg *Message) GetHeader(field string) []string {
-	return msg.header[field]
+func (m *Message) GetHeader(field string) []string {
+	return m.header[field]
 }
 
 // DelHeader deletes a header field.
-func (msg *Message) DelHeader(field string) {
-	delete(msg.header, field)
+func (m *Message) DelHeader(field string) {
+	delete(m.header, field)
 }
 
 // SetBody sets the body of the message.
-func (msg *Message) SetBody(contentType, body string) {
-	msg.parts = []part{
+func (m *Message) SetBody(contentType, body string) {
+	m.parts = []part{
 		part{
 			contentType: contentType,
 			copier: func(w io.Writer) error {
@@ -217,12 +217,12 @@ func (msg *Message) SetBody(contentType, body string) {
 //
 // Example:
 //
-//	msg.SetBody("text/plain", "Hello!")
-//	msg.AddAlternative("text/html", "<p>Hello!</p>")
+//	m.SetBody("text/plain", "Hello!")
+//	m.AddAlternative("text/html", "<p>Hello!</p>")
 //
 // More info: http://en.wikipedia.org/wiki/MIME#Alternative
-func (msg *Message) AddAlternative(contentType, body string) {
-	msg.parts = append(msg.parts,
+func (m *Message) AddAlternative(contentType, body string) {
+	m.parts = append(m.parts,
 		part{
 			contentType: contentType,
 			copier: func(w io.Writer) error {
@@ -239,11 +239,11 @@ func (msg *Message) AddAlternative(contentType, body string) {
 // Example:
 //
 //	t := template.Must(template.New("example").Parse("Hello {{.}}!"))
-//	msg.AddAlternativeWriter("text/plain", func(w io.Writer) error {
+//	m.AddAlternativeWriter("text/plain", func(w io.Writer) error {
 //		return t.Execute(w, "Bob")
 //	})
-func (msg *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
-	msg.parts = []part{
+func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
+	m.parts = []part{
 		part{
 			contentType: contentType,
 			copier:      f,
@@ -288,11 +288,11 @@ func (f *File) setHeader(field string, value ...string) {
 }
 
 // Attach attaches the files to the email.
-func (msg *Message) Attach(f ...*File) {
-	if msg.attachments == nil {
-		msg.attachments = f
+func (m *Message) Attach(f ...*File) {
+	if m.attachments == nil {
+		m.attachments = f
 	} else {
-		msg.attachments = append(msg.attachments, f...)
+		m.attachments = append(m.attachments, f...)
 	}
 }
 
@@ -304,12 +304,12 @@ func (msg *Message) Attach(f ...*File) {
 //	if err != nil {
 //		panic(err)
 //	}
-//	msg.Embed(f)
-//	msg.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)
-func (msg *Message) Embed(image ...*File) {
-	if msg.embedded == nil {
-		msg.embedded = image
+//	m.Embed(f)
+//	m.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)
+func (m *Message) Embed(image ...*File) {
+	if m.embedded == nil {
+		m.embedded = image
 	} else {
-		msg.embedded = append(msg.embedded, image...)
+		m.embedded = append(m.embedded, image...)
 	}
 }

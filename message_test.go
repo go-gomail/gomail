@@ -25,18 +25,18 @@ type message struct {
 }
 
 func TestMessage(t *testing.T) {
-	msg := NewMessage()
-	msg.SetAddressHeader("From", "from@example.com", "Señor From")
-	msg.SetHeader("To", msg.FormatAddress("to@example.com", "Señor To"), "tobis@example.com")
-	msg.SetAddressHeader("Cc", "cc@example.com", "A, B")
-	msg.SetAddressHeader("X-To", "ccbis@example.com", "à, b")
-	msg.SetDateHeader("X-Date", now())
-	msg.SetHeader("X-Date-2", msg.FormatDate(now()))
-	msg.SetHeader("Subject", "¡Hola, señor!")
-	msg.SetHeaders(map[string][]string{
+	m := NewMessage()
+	m.SetAddressHeader("From", "from@example.com", "Señor From")
+	m.SetHeader("To", m.FormatAddress("to@example.com", "Señor To"), "tobis@example.com")
+	m.SetAddressHeader("Cc", "cc@example.com", "A, B")
+	m.SetAddressHeader("X-To", "ccbis@example.com", "à, b")
+	m.SetDateHeader("X-Date", now())
+	m.SetHeader("X-Date-2", m.FormatDate(now()))
+	m.SetHeader("Subject", "¡Hola, señor!")
+	m.SetHeaders(map[string][]string{
 		"X-Headers": {"Test", "Café"},
 	})
-	msg.SetBody("text/plain", "¡Hola, señor!")
+	m.SetBody("text/plain", "¡Hola, señor!")
 
 	want := &message{
 		from: "from@example.com",
@@ -59,14 +59,14 @@ func TestMessage(t *testing.T) {
 			"=C2=A1Hola, se=C3=B1or!",
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
 func TestBodyWriter(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.AddAlternativeWriter("text/plain", func(w io.Writer) error {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.AddAlternativeWriter("text/plain", func(w io.Writer) error {
 		_, err := w.Write([]byte("Test message"))
 		return err
 	})
@@ -82,17 +82,17 @@ func TestBodyWriter(t *testing.T) {
 			"Test message",
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
 func TestCustomMessage(t *testing.T) {
-	msg := NewMessage(SetCharset("ISO-8859-1"), SetEncoding(Base64))
-	msg.SetHeaders(map[string][]string{
+	m := NewMessage(SetCharset("ISO-8859-1"), SetEncoding(Base64))
+	m.SetHeaders(map[string][]string{
 		"From":    {"from@example.com"},
 		"To":      {"to@example.com"},
 		"Subject": {"Café"},
 	})
-	msg.SetBody("text/html", "¡Hola, señor!")
+	m.SetBody("text/html", "¡Hola, señor!")
 
 	want := &message{
 		from: "from@example.com",
@@ -106,17 +106,17 @@ func TestCustomMessage(t *testing.T) {
 			"wqFIb2xhLCBzZcOxb3Ih",
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
 func TestUnencodedMessage(t *testing.T) {
-	msg := NewMessage(SetEncoding(Unencoded))
-	msg.SetHeaders(map[string][]string{
+	m := NewMessage(SetEncoding(Unencoded))
+	m.SetHeaders(map[string][]string{
 		"From":    {"from@example.com"},
 		"To":      {"to@example.com"},
 		"Subject": {"Café"},
 	})
-	msg.SetBody("text/html", "¡Hola, señor!")
+	m.SetBody("text/html", "¡Hola, señor!")
 
 	want := &message{
 		from: "from@example.com",
@@ -130,19 +130,19 @@ func TestUnencodedMessage(t *testing.T) {
 			"¡Hola, señor!",
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
 func TestRecipients(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeaders(map[string][]string{
+	m := NewMessage()
+	m.SetHeaders(map[string][]string{
 		"From":    {"from@example.com"},
 		"To":      {"to@example.com"},
 		"Cc":      {"cc@example.com"},
 		"Bcc":     {"bcc1@example.com", "bcc2@example.com"},
 		"Subject": {"Hello!"},
 	})
-	msg.SetBody("text/plain", "Test message")
+	m.SetBody("text/plain", "Test message")
 
 	want := &message{
 		from: "from@example.com",
@@ -157,15 +157,15 @@ func TestRecipients(t *testing.T) {
 			"Test message",
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
 func TestAlternative(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.SetBody("text/plain", "¡Hola, señor!")
-	msg.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "¡Hola, señor!")
+	m.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
 
 	want := &message{
 		from: "from@example.com",
@@ -187,14 +187,14 @@ func TestAlternative(t *testing.T) {
 			"--_BOUNDARY_1_--\r\n",
 	}
 
-	testMessage(t, msg, 1, want)
+	testMessage(t, m, 1, want)
 }
 
 func TestAttachmentOnly(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.Attach(testFile("/tmp/test.pdf"))
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.Attach(testFile("/tmp/test.pdf"))
 
 	want := &message{
 		from: "from@example.com",
@@ -208,15 +208,15 @@ func TestAttachmentOnly(t *testing.T) {
 			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")),
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
 func TestAttachment(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.SetBody("text/plain", "Test")
-	msg.Attach(testFile("/tmp/test.pdf"))
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "Test")
+	m.Attach(testFile("/tmp/test.pdf"))
 
 	want := &message{
 		from: "from@example.com",
@@ -239,15 +239,15 @@ func TestAttachment(t *testing.T) {
 			"--_BOUNDARY_1_--\r\n",
 	}
 
-	testMessage(t, msg, 1, want)
+	testMessage(t, m, 1, want)
 }
 
 func TestAttachmentsOnly(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.Attach(testFile("/tmp/test.pdf"))
-	msg.Attach(testFile("/tmp/test.zip"))
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.Attach(testFile("/tmp/test.pdf"))
+	m.Attach(testFile("/tmp/test.zip"))
 
 	want := &message{
 		from: "from@example.com",
@@ -271,16 +271,16 @@ func TestAttachmentsOnly(t *testing.T) {
 			"--_BOUNDARY_1_--\r\n",
 	}
 
-	testMessage(t, msg, 1, want)
+	testMessage(t, m, 1, want)
 }
 
 func TestAttachments(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.SetBody("text/plain", "Test")
-	msg.Attach(testFile("/tmp/test.pdf"))
-	msg.Attach(testFile("/tmp/test.zip"))
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "Test")
+	m.Attach(testFile("/tmp/test.pdf"))
+	m.Attach(testFile("/tmp/test.zip"))
 
 	want := &message{
 		from: "from@example.com",
@@ -309,18 +309,18 @@ func TestAttachments(t *testing.T) {
 			"--_BOUNDARY_1_--\r\n",
 	}
 
-	testMessage(t, msg, 1, want)
+	testMessage(t, m, 1, want)
 }
 
 func TestEmbedded(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
 	f := testFile("image1.jpg")
 	f.Header["Content-ID"] = []string{"<test-content-id>"}
-	msg.Embed(f)
-	msg.Embed(testFile("image2.jpg"))
-	msg.SetBody("text/plain", "Test")
+	m.Embed(f)
+	m.Embed(testFile("image2.jpg"))
+	m.SetBody("text/plain", "Test")
 
 	want := &message{
 		from: "from@example.com",
@@ -351,17 +351,17 @@ func TestEmbedded(t *testing.T) {
 			"--_BOUNDARY_1_--\r\n",
 	}
 
-	testMessage(t, msg, 1, want)
+	testMessage(t, m, 1, want)
 }
 
 func TestFullMessage(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.SetBody("text/plain", "¡Hola, señor!")
-	msg.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
-	msg.Attach(testFile("test.pdf"))
-	msg.Embed(testFile("image.jpg"))
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "¡Hola, señor!")
+	m.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
+	m.Attach(testFile("test.pdf"))
+	m.Embed(testFile("image.jpg"))
 
 	want := &message{
 		from: "from@example.com",
@@ -406,7 +406,7 @@ func TestFullMessage(t *testing.T) {
 			"--_BOUNDARY_1_--\r\n",
 	}
 
-	testMessage(t, msg, 3, want)
+	testMessage(t, m, 3, want)
 
 	want = &message{
 		from: "from@example.com",
@@ -418,18 +418,18 @@ func TestFullMessage(t *testing.T) {
 			"\r\n" +
 			"Test reset",
 	}
-	msg.Reset()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.SetBody("text/plain", "Test reset")
-	testMessage(t, msg, 0, want)
+	m.Reset()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "Test reset")
+	testMessage(t, m, 0, want)
 }
 
 func TestQpLineLength(t *testing.T) {
-	msg := NewMessage()
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.SetBody("text/plain",
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain",
 		strings.Repeat("0", 76)+"\r\n"+
 			strings.Repeat("0", 75)+"à\r\n"+
 			strings.Repeat("0", 74)+"à\r\n"+
@@ -455,14 +455,14 @@ func TestQpLineLength(t *testing.T) {
 			strings.Repeat("0", 75) + "=\r\n0\r\n",
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
 func TestBase64LineLength(t *testing.T) {
-	msg := NewMessage(SetCharset("UTF-8"), SetEncoding(Base64))
-	msg.SetHeader("From", "from@example.com")
-	msg.SetHeader("To", "to@example.com")
-	msg.SetBody("text/plain", strings.Repeat("0", 58))
+	m := NewMessage(SetCharset("UTF-8"), SetEncoding(Base64))
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", strings.Repeat("0", 58))
 
 	want := &message{
 		from: "from@example.com",
@@ -475,18 +475,18 @@ func TestBase64LineLength(t *testing.T) {
 			strings.Repeat("MDAw", 19) + "\r\nMA==",
 	}
 
-	testMessage(t, msg, 0, want)
+	testMessage(t, m, 0, want)
 }
 
-func testMessage(t *testing.T, msg *Message, bCount int, want *message) {
-	err := Send(stubSendMail(t, bCount, want), msg)
+func testMessage(t *testing.T, m *Message, bCount int, want *message) {
+	err := Send(stubSendMail(t, bCount, want), m)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
-	return func(from string, to []string, msg io.WriterTo) error {
+	return func(from string, to []string, m io.WriterTo) error {
 		if from != want.from {
 			t.Fatalf("Invalid from, got %q, want %q", from, want.from)
 		}
@@ -506,7 +506,7 @@ func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
 		}
 
 		buf := new(bytes.Buffer)
-		_, err := msg.WriteTo(buf)
+		_, err := m.WriteTo(buf)
 		if err != nil {
 			t.Error(err)
 		}
@@ -575,8 +575,8 @@ func missingLine(t *testing.T, line, got, want string) {
 	t.Fatalf("Missing line %q\ngot:\n%s\nwant:\n%s", line, got, want)
 }
 
-func getBoundaries(t *testing.T, count int, msg string) []string {
-	if matches := boundaryRegExp.FindAllStringSubmatch(msg, count); matches != nil {
+func getBoundaries(t *testing.T, count int, m string) []string {
+	if matches := boundaryRegExp.FindAllStringSubmatch(m, count); matches != nil {
 		boundaries := make([]string, count)
 		for i, match := range matches {
 			boundaries[i] = match[1]
@@ -601,30 +601,30 @@ func testFile(name string) *File {
 
 func BenchmarkFull(b *testing.B) {
 	buf := new(bytes.Buffer)
-	emptyFunc := func(from string, to []string, msg io.WriterTo) error {
-		msg.WriteTo(buf)
+	emptyFunc := func(from string, to []string, m io.WriterTo) error {
+		m.WriteTo(buf)
 		buf.Reset()
 		return nil
 	}
 
-	msg := NewMessage()
+	m := NewMessage()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		msg.SetAddressHeader("From", "from@example.com", "Señor From")
-		msg.SetHeaders(map[string][]string{
+		m.SetAddressHeader("From", "from@example.com", "Señor From")
+		m.SetHeaders(map[string][]string{
 			"To":      {"to@example.com"},
 			"Cc":      {"cc@example.com"},
 			"Bcc":     {"bcc1@example.com", "bcc2@example.com"},
 			"Subject": {"¡Hola, señor!"},
 		})
-		msg.SetBody("text/plain", "¡Hola, señor!")
-		msg.AddAlternative("text/html", "<p>¡Hola, señor!</p>")
-		msg.Attach(testFile("benchmark.txt"))
-		msg.Embed(testFile("benchmark.jpg"))
+		m.SetBody("text/plain", "¡Hola, señor!")
+		m.AddAlternative("text/html", "<p>¡Hola, señor!</p>")
+		m.Attach(testFile("benchmark.txt"))
+		m.Embed(testFile("benchmark.jpg"))
 
-		if err := Send(SendFunc(emptyFunc), msg); err != nil {
+		if err := Send(SendFunc(emptyFunc), m); err != nil {
 			panic(err)
 		}
-		msg.Reset()
+		m.Reset()
 	}
 }

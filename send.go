@@ -42,28 +42,28 @@ func Send(s Sender, msg ...*Message) error {
 	return nil
 }
 
-func send(s Sender, msg *Message) error {
-	from, err := msg.getFrom()
+func send(s Sender, m *Message) error {
+	from, err := m.getFrom()
 	if err != nil {
 		return err
 	}
 
-	to, err := msg.getRecipients()
+	to, err := m.getRecipients()
 	if err != nil {
 		return err
 	}
 
-	if err := s.Send(from, to, msg); err != nil {
+	if err := s.Send(from, to, m); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (msg *Message) getFrom() (string, error) {
-	from := msg.header["Sender"]
+func (m *Message) getFrom() (string, error) {
+	from := m.header["Sender"]
 	if len(from) == 0 {
-		from = msg.header["From"]
+		from = m.header["From"]
 		if len(from) == 0 {
 			return "", errors.New(`gomail: invalid message, "From" field is absent`)
 		}
@@ -72,10 +72,10 @@ func (msg *Message) getFrom() (string, error) {
 	return parseAddress(from[0])
 }
 
-func (msg *Message) getRecipients() ([]string, error) {
+func (m *Message) getRecipients() ([]string, error) {
 	var list []string
 	for _, field := range []string{"To", "Cc", "Bcc"} {
-		if addresses, ok := msg.header[field]; ok {
+		if addresses, ok := m.header[field]; ok {
 			for _, a := range addresses {
 				addr, err := parseAddress(a)
 				if err != nil {

@@ -12,65 +12,65 @@ import (
 )
 
 // WriteTo implements io.WriterTo. It dumps the whole message into w.
-func (msg *Message) WriteTo(w io.Writer) (int64, error) {
+func (m *Message) WriteTo(w io.Writer) (int64, error) {
 	mw := &messageWriter{w: w}
-	mw.writeMessage(msg)
+	mw.writeMessage(m)
 	return mw.n, mw.err
 }
 
-func (w *messageWriter) writeMessage(msg *Message) {
-	if _, ok := msg.header["Mime-Version"]; !ok {
+func (w *messageWriter) writeMessage(m *Message) {
+	if _, ok := m.header["Mime-Version"]; !ok {
 		w.writeString("Mime-Version: 1.0\r\n")
 	}
-	if _, ok := msg.header["Date"]; !ok {
-		w.writeHeader("Date", msg.FormatDate(now()))
+	if _, ok := m.header["Date"]; !ok {
+		w.writeHeader("Date", m.FormatDate(now()))
 	}
-	w.writeHeaders(msg.header)
+	w.writeHeaders(m.header)
 
-	if msg.hasMixedPart() {
+	if m.hasMixedPart() {
 		w.openMultipart("mixed")
 	}
 
-	if msg.hasRelatedPart() {
+	if m.hasRelatedPart() {
 		w.openMultipart("related")
 	}
 
-	if msg.hasAlternativePart() {
+	if m.hasAlternativePart() {
 		w.openMultipart("alternative")
 	}
-	for _, part := range msg.parts {
-		contentType := part.contentType + "; charset=" + msg.charset
+	for _, part := range m.parts {
+		contentType := part.contentType + "; charset=" + m.charset
 		w.writeHeaders(map[string][]string{
 			"Content-Type":              []string{contentType},
-			"Content-Transfer-Encoding": []string{string(msg.encoding)},
+			"Content-Transfer-Encoding": []string{string(m.encoding)},
 		})
-		w.writeBody(part.copier, msg.encoding)
+		w.writeBody(part.copier, m.encoding)
 	}
-	if msg.hasAlternativePart() {
+	if m.hasAlternativePart() {
 		w.closeMultipart()
 	}
 
-	w.addFiles(msg.embedded, false)
-	if msg.hasRelatedPart() {
+	w.addFiles(m.embedded, false)
+	if m.hasRelatedPart() {
 		w.closeMultipart()
 	}
 
-	w.addFiles(msg.attachments, true)
-	if msg.hasMixedPart() {
+	w.addFiles(m.attachments, true)
+	if m.hasMixedPart() {
 		w.closeMultipart()
 	}
 }
 
-func (msg *Message) hasMixedPart() bool {
-	return (len(msg.parts) > 0 && len(msg.attachments) > 0) || len(msg.attachments) > 1
+func (m *Message) hasMixedPart() bool {
+	return (len(m.parts) > 0 && len(m.attachments) > 0) || len(m.attachments) > 1
 }
 
-func (msg *Message) hasRelatedPart() bool {
-	return (len(msg.parts) > 0 && len(msg.embedded) > 0) || len(msg.embedded) > 1
+func (m *Message) hasRelatedPart() bool {
+	return (len(m.parts) > 0 && len(m.embedded) > 0) || len(m.embedded) > 1
 }
 
-func (msg *Message) hasAlternativePart() bool {
-	return len(msg.parts) > 1
+func (m *Message) hasAlternativePart() bool {
+	return len(m.parts) > 1
 }
 
 type messageWriter struct {
