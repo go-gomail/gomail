@@ -52,6 +52,17 @@ func NewMessage(settings ...MessageSetting) *Message {
 	return msg
 }
 
+// Reset resets the message so it can be reused. The message keeps its previous
+// settings so it is in the same state that after a call to NewMessage.
+func (msg *Message) Reset() {
+	for k := range msg.header {
+		delete(msg.header, k)
+	}
+	msg.parts = nil
+	msg.attachments = nil
+	msg.embedded = nil
+}
+
 func (msg *Message) applySettings(settings []MessageSetting) {
 	for _, s := range settings {
 		s(msg)

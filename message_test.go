@@ -411,6 +411,22 @@ func TestFullMessage(t *testing.T) {
 	}
 
 	testMessage(t, msg, 3, want)
+
+	want = &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: text/plain; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"Test reset",
+	}
+	msg.Reset()
+	msg.SetHeader("From", "from@example.com")
+	msg.SetHeader("To", "to@example.com")
+	msg.SetBody("text/plain", "Test reset")
+	testMessage(t, msg, 0, want)
 }
 
 func TestQpLineLength(t *testing.T) {
@@ -588,12 +604,16 @@ func testFile(name string) *File {
 }
 
 func BenchmarkFull(b *testing.B) {
+	buf := new(bytes.Buffer)
 	emptyFunc := func(from string, to []string, msg io.WriterTo) error {
+		msg.WriteTo(buf)
+		buf.Reset()
 		return nil
 	}
 
+	msg := NewMessage()
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		msg := NewMessage()
 		msg.SetAddressHeader("From", "from@example.com", "Señor From")
 		msg.SetHeaders(map[string][]string{
 			"To":      {"to@example.com"},
@@ -609,5 +629,6 @@ func BenchmarkFull(b *testing.B) {
 		if err := Send(SendFunc(emptyFunc), msg); err != nil {
 			panic(err)
 		}
+		msg.Reset()
 	}
 }
