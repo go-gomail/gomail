@@ -10,7 +10,6 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 )
 
@@ -23,6 +22,7 @@ type Message struct {
 	charset     string
 	encoding    Encoding
 	hEncoder    mime.WordEncoder
+	buf         bytes.Buffer
 }
 
 type header map[string][]string
@@ -128,22 +128,44 @@ func (msg *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (msg *Message) FormatAddress(address, name string) string {
-	buf := getBuffer()
-	defer putBuffer(buf)
-
 	enc := msg.encodeHeader(name)
 	if enc == name {
-		quote(buf, name)
+		msg.buf.WriteByte('"')
+		for i := 0; i < len(name); i++ {
+			b := name[i]
+			if b == '\\' || b == '"' {
+				msg.buf.WriteByte('\\')
+			}
+			msg.buf.WriteByte(b)
+		}
+		msg.buf.WriteByte('"')
 	} else if hasSpecials(name) {
-		buf.WriteString(mime.BEncoding.Encode(msg.charset, name))
+		msg.buf.WriteString(mime.BEncoding.Encode(msg.charset, name))
 	} else {
-		buf.WriteString(enc)
+		msg.buf.WriteString(enc)
 	}
-	buf.WriteString(" <")
-	buf.WriteString(address)
-	buf.WriteByte('>')
+	msg.buf.WriteString(" <")
+	msg.buf.WriteString(address)
+	msg.buf.WriteByte('>')
 
-	return buf.String()
+	addr := msg.buf.String()
+	msg.buf.Reset()
+	return addr
+}
+
+func hasSpecials(text string) bool {
+	for i := 0; i < len(text); i++ {
+		switch c := text[i]; c {
+		case '(', ')', '<', '>', '[', ']', ':', ';', '@', '\\', ',', '.', '"':
+			return true
+		}
+	}
+
+	return false
+}
+
+func (msg *Message) encodeHeader(value string) string {
+	return msg.hEncoder.Encode(msg.charset, value)
 }
 
 // SetDateHeader sets a date to the given header field.
@@ -284,47 +306,3 @@ func (msg *Message) Embed(image ...*File) {
 
 // Stubbed out for testing.
 var readFile = ioutil.ReadFile
-
-func quote(buf *bytes.Buffer, text string) {
-	buf.WriteByte('"')
-	for i := 0; i < len(text); i++ {
-		if text[i] == '\\' || text[i] == '"' {
-			buf.WriteByte('\\')
-		}
-		buf.WriteByte(text[i])
-	}
-	buf.WriteByte('"')
-}
-
-func hasSpecials(text string) bool {
-	for i := 0; i < len(text); i++ {
-		switch c := text[i]; c {
-		case '(', ')', '<', '>', '[', ']', ':', ';', '@', '\\', ',', '.', '"':
-			return true
-		}
-	}
-
-	return false
-}
-
-func (msg *Message) encodeHeader(value string) string {
-	return msg.hEncoder.Encode(msg.charset, value)
-}
-
-var bufPool = sync.Pool{
-	New: func() interface{} {
-		return new(bytes.Buffer)
-	},
-}
-
-func getBuffer() *bytes.Buffer {
-	return bufPool.Get().(*bytes.Buffer)
-}
-
-func putBuffer(buf *bytes.Buffer) {
-	if buf.Len() > 1024 {
-		return
-	}
-	buf.Reset()
-	bufPool.Put(buf)
-}
