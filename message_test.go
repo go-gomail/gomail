@@ -191,10 +191,6 @@ func TestAlternative(t *testing.T) {
 }
 
 func TestAttachmentOnly(t *testing.T) {
-	readFile = func(filename string) ([]byte, error) {
-		return []byte("Content of " + filepath.Base(filename)), nil
-	}
-
 	msg := NewMessage()
 	msg.SetHeader("From", "from@example.com")
 	msg.SetHeader("To", "to@example.com")

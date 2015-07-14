@@ -6,7 +6,6 @@ package gomail
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"mime"
 	"os"
 	"path/filepath"
@@ -314,6 +313,3 @@ func (msg *Message) Embed(image ...*File) {
 		msg.embedded = append(msg.embedded, image...)
 	}
 }
-
-// Stubbed out for testing.
-var readFile = ioutil.ReadFile
