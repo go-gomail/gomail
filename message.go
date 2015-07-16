@@ -6,7 +6,6 @@ package gomail
 import (
 	"bytes"
 	"io"
-	"mime"
 	"os"
 	"path/filepath"
 	"time"
@@ -20,7 +19,7 @@ type Message struct {
 	embedded    []*File
 	charset     string
 	encoding    Encoding
-	hEncoder    mime.WordEncoder
+	hEncoder    mimeEncoder
 	buf         bytes.Buffer
 }
 
@@ -43,9 +42,9 @@ func NewMessage(settings ...MessageSetting) *Message {
 	m.applySettings(settings)
 
 	if m.encoding == Base64 {
-		m.hEncoder = mime.BEncoding
+		m.hEncoder = bEncoding
 	} else {
-		m.hEncoder = mime.QEncoding
+		m.hEncoder = qEncoding
 	}
 
 	return m
@@ -150,7 +149,7 @@ func (m *Message) FormatAddress(address, name string) string {
 		}
 		m.buf.WriteByte('"')
 	} else if hasSpecials(name) {
-		m.buf.WriteString(mime.BEncoding.Encode(m.charset, name))
+		m.buf.WriteString(bEncoding.Encode(m.charset, name))
 	} else {
 		m.buf.WriteString(enc)
 	}

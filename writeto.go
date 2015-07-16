@@ -6,7 +6,6 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
-	"mime/quotedprintable"
 	"path/filepath"
 	"time"
 )
@@ -207,7 +206,7 @@ func (w *messageWriter) writeBody(f func(io.Writer) error, enc Encoding) {
 	} else if enc == Unencoded {
 		w.err = f(subWriter)
 	} else {
-		wc := quotedprintable.NewWriter(subWriter)
+		wc := newQPWriter(subWriter)
 		w.err = f(wc)
 		wc.Close()
 	}
