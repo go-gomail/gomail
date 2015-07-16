@@ -299,11 +299,7 @@ func (m *Message) Attach(f ...*File) {
 //
 // Example:
 //
-//	f, err := gomail.OpenFile("/tmp/image.jpg")
-//	if err != nil {
-//		panic(err)
-//	}
-//	m.Embed(f)
+//	m.Embed(gomail.NewFile("/tmp/image.jpg"))
 //	m.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)
 func (m *Message) Embed(image ...*File) {
 	if m.embedded == nil {

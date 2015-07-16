@@ -47,16 +47,12 @@ func main() {
 	msg.SetAddressHeader("Cc", "dan@example.com", "Dan")
 	msg.SetHeader("Subject", "Hello!")
 	msg.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
+	msg.Attach(gomail.NewFile("/home/Alex/lolcat.jpg"))
 
-	f, err := gomail.OpenFile("/home/Alex/lolcat.jpg")
-	if err != nil {
-		panic(err)
-	}
-	msg.Attach(f)
+	d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
 
 	// Send the email to Bob, Cora and Dan
-	mailer := gomail.NewMailer("smtp.example.com", "user", "123456", 587)
-	if err := mailer.Send(msg); err != nil {
+	if err := d.DialAndSend(msg); err != nil {
 		panic(err)
 	}
 }
@@ -72,7 +68,8 @@ considered valid by the client running Gomail. As a quick workaround you can
 bypass the verification of the server's certificate chain and host name by using
 `SetTLSConfig`:
 
-    mailer := gomail.NewMailer("smtp.example.com", "user", "123456", 587, gomail.SetTLSConfig(&tls.Config{InsecureSkipVerify: true}))
+    d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
+    d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 Note, however, that this is insecure and should not be used in production.
 
