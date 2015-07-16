@@ -75,7 +75,7 @@ type MessageSetting func(m *Message)
 //
 // Example:
 //
-//	m := gomail.NewMessage(SetCharset("ISO-8859-1"))
+//	m := gomail.NewMessage(gomail.SetCharset("ISO-8859-1"))
 func SetCharset(charset string) MessageSetting {
 	return func(m *Message) {
 		m.charset = charset
@@ -86,7 +86,7 @@ func SetCharset(charset string) MessageSetting {
 //
 // Example:
 //
-//	m := gomail.NewMessage(SetEncoding(gomail.Base64))
+//	m := gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
 func SetEncoding(enc Encoding) MessageSetting {
 	return func(m *Message) {
 		m.encoding = enc
@@ -256,7 +256,8 @@ type File struct {
 	// message it is the name of the attachment.
 	Name string
 	// Header represents the MIME header of the message part that contains the
-	// file content.
+	// file content. It is empty by default. Mandatory headers are automatically
+	// added if they are not sent when sending the email.
 	Header map[string][]string
 	// Copier is a function run when the message is sent. It should copy the
 	// content of the file to w.
@@ -287,6 +288,10 @@ func (f *File) setHeader(field string, value ...string) {
 }
 
 // Attach attaches the files to the email.
+//
+// Example:
+//
+//	m.Attach(gomail.NewFile("/tmp/image.jpg"))
 func (m *Message) Attach(f ...*File) {
 	if m.attachments == nil {
 		m.attachments = f
