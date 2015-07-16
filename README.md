@@ -73,16 +73,6 @@ bypass the verification of the server's certificate chain and host name by using
 
 Note, however, that this is insecure and should not be used in production.
 
-### 504 5.7.4 Unrecognized authentication type
-
-If you get this error, you should try using the LOGIN authentication mechanism:
-
-    addr := "smtp.example.com:587"
-    auth := gomail.LoginAuth("username", "password", "smtp.example.com")
-    mailer := gomail.NewCustomMailer(addr, auth)
-
-See [issue #16](https://github.com/go-gomail/gomail/issues/16).
-
 
 ## Contact
 
