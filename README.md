@@ -79,6 +79,11 @@ Note, however, that this is insecure and should not be used in production.
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
+## Change log
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+
 ## Contact
 
 You can ask questions on the [Gomail
