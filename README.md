@@ -74,11 +74,13 @@ bypass the verification of the server's certificate chain and host name by using
 Note, however, that this is insecure and should not be used in production.
 
 
+## Contribute
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+
 ## Contact
 
-You are more than welcome to open issues and send pull requests if you find a
-bug or need a new feature.
-
-You can also ask questions on the [Gomail
+You can ask questions on the [Gomail
 thread](https://groups.google.com/d/topic/golang-nuts/ywPpNlmSt6U/discussion)
-in the Go mailing-list or via Twitter [@alexandrecesaro](https://twitter.com/alexandrecesaro).
+in the Go mailing-list.
