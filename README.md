@@ -23,12 +23,12 @@ It requires Go 1.2 or newer.
 
 ## Documentation
 
-https://godoc.org/gopkg.in/gomail.v1
+https://godoc.org/gopkg.in/gomail.v2-unstable
 
 
 ## Download
 
-    go get gopkg.in/gomail.v1
+    go get gopkg.in/gomail.v2-unstable
 
 
 ## Example
@@ -37,7 +37,7 @@ https://godoc.org/gopkg.in/gomail.v1
 package main
 
 import (
-	"gopkg.in/gomail.v1"
+	"gopkg.in/gomail.v2-unstable"
 )
 
 func main() {
