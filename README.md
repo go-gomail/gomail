@@ -2,23 +2,25 @@
 
 ## Introduction
 
-Gomail is a very simple and powerful package to send emails.
+Gomail is a simple and efficient package to send emails. It is well tested and
+documented.
+
+It is versioned using [gopkg.in](https://gopkg.in) so I promise
+they will never be backward incompatible changes within each version.
 
 It requires Go 1.2 or newer.
 
 
 ## Features
 
- * Dead-simple API
- * Highly flexible
- * Backward compatibility promise
- * Supports HTML and text templates
- * Attachments
- * Embedded images
- * SSL/TLS support
- * Automatic encoding of special characters
- * Well-documented
- * High test coverage
+Gomail supports:
+- Attachments
+- Embedded images
+- HTML and text templates
+- Automatic encoding of special characters
+- SSL and TLS
+- Sending multiple emails with the same SMTP connection
+- Any method to send emails: SMTP, postfix (not included but easily doable), etc
 
 
 ## Documentation
@@ -105,4 +107,4 @@ As an added bonus, your donations will also tip me by lowering my taxes :smile:
 I will send an email with the receipt of the donation to EEDM annually to all
 donors.
 
-[![foo](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PYQKC7VFVXCFG)
+[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PYQKC7VFVXCFG)
