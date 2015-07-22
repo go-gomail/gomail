@@ -200,7 +200,7 @@ func (m *Message) DelHeader(field string) {
 // SetBody sets the body of the message.
 func (m *Message) SetBody(contentType, body string) {
 	m.parts = []part{
-		part{
+		{
 			contentType: contentType,
 			copier: func(w io.Writer) error {
 				_, err := io.WriteString(w, body)
@@ -243,7 +243,7 @@ func (m *Message) AddAlternative(contentType, body string) {
 //	})
 func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
 	m.parts = []part{
-		part{
+		{
 			contentType: contentType,
 			copier:      f,
 		},

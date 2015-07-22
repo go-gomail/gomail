@@ -40,8 +40,8 @@ func (w *messageWriter) writeMessage(m *Message) {
 	for _, part := range m.parts {
 		contentType := part.contentType + "; charset=" + m.charset
 		w.writeHeaders(map[string][]string{
-			"Content-Type":              []string{contentType},
-			"Content-Transfer-Encoding": []string{string(m.encoding)},
+			"Content-Type":              {contentType},
+			"Content-Transfer-Encoding": {string(m.encoding)},
 		})
 		w.writeBody(part.copier, m.encoding)
 	}
@@ -91,7 +91,7 @@ func (w *messageWriter) openMultipart(mimeType string) {
 		w.writeString("\r\n")
 	} else {
 		w.createPart(map[string][]string{
-			"Content-Type": []string{contentType},
+			"Content-Type": {contentType},
 		})
 	}
 	w.depth++
