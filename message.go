@@ -26,8 +26,8 @@ type Message struct {
 type header map[string][]string
 
 type part struct {
-	contentType string
-	copier      func(io.Writer) error
+	header header
+	copier func(io.Writer) error
 }
 
 // NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
@@ -201,7 +201,7 @@ func (m *Message) DelHeader(field string) {
 func (m *Message) SetBody(contentType, body string) {
 	m.parts = []part{
 		{
-			contentType: contentType,
+			header: m.getPartHeader(contentType),
 			copier: func(w io.Writer) error {
 				_, err := io.WriteString(w, body)
 				return err
@@ -223,7 +223,7 @@ func (m *Message) SetBody(contentType, body string) {
 func (m *Message) AddAlternative(contentType, body string) {
 	m.parts = append(m.parts,
 		part{
-			contentType: contentType,
+			header: m.getPartHeader(contentType),
 			copier: func(w io.Writer) error {
 				_, err := io.WriteString(w, body)
 				return err
@@ -244,9 +244,16 @@ func (m *Message) AddAlternative(contentType, body string) {
 func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
 	m.parts = []part{
 		{
-			contentType: contentType,
-			copier:      f,
+			header: m.getPartHeader(contentType),
+			copier: f,
 		},
+	}
+}
+
+func (m *Message) getPartHeader(contentType string) header {
+	return map[string][]string{
+		"Content-Type":              {contentType + "; charset=" + m.charset},
+		"Content-Transfer-Encoding": {string(m.encoding)},
 	}
 }
 

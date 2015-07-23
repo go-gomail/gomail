@@ -38,11 +38,7 @@ func (w *messageWriter) writeMessage(m *Message) {
 		w.openMultipart("alternative")
 	}
 	for _, part := range m.parts {
-		contentType := part.contentType + "; charset=" + m.charset
-		w.writeHeaders(map[string][]string{
-			"Content-Type":              {contentType},
-			"Content-Transfer-Encoding": {string(m.encoding)},
-		})
+		w.writeHeaders(part.header)
 		w.writeBody(part.copier, m.encoding)
 	}
 	if m.hasAlternativePart() {
