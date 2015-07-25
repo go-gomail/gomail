@@ -73,7 +73,14 @@ func (m *Message) getFrom() (string, error) {
 }
 
 func (m *Message) getRecipients() ([]string, error) {
-	var list []string
+	n := 0
+	for _, field := range []string{"To", "Cc", "Bcc"} {
+		if addresses, ok := m.header[field]; ok {
+			n += len(addresses)
+		}
+	}
+	list := make([]string, 0, n)
+
 	for _, field := range []string{"To", "Cc", "Bcc"} {
 		if addresses, ok := m.header[field]; ok {
 			for _, a := range addresses {
