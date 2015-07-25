@@ -41,7 +41,7 @@ func (a *plainAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
 		return "LOGIN", nil, nil
 	}
 
-	return "PLAIN", []byte(a.username + "\x00" + a.password), nil
+	return "PLAIN", []byte("\x00" + a.username + "\x00" + a.password), nil
 }
 
 func (a *plainAuth) Next(fromServer []byte, more bool) ([]byte, error) {

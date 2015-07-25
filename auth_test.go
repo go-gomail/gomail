@@ -42,7 +42,7 @@ func TestNoAdvertisementTLS(t *testing.T) {
 		challenges: []string{"Username:", "Password:"},
 		tls:        true,
 		wantProto:  "PLAIN",
-		wantData:   []string{testUser + "\x00" + testPwd},
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
 	})
 }
 
@@ -52,7 +52,7 @@ func TestPlain(t *testing.T) {
 		challenges: []string{"Username:", "Password:"},
 		tls:        false,
 		wantProto:  "PLAIN",
-		wantData:   []string{testUser + "\x00" + testPwd},
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
 	})
 }
 
@@ -62,7 +62,7 @@ func TestPlainTLS(t *testing.T) {
 		challenges: []string{"Username:", "Password:"},
 		tls:        true,
 		wantProto:  "PLAIN",
-		wantData:   []string{testUser + "\x00" + testPwd},
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
 	})
 }
 
@@ -72,7 +72,7 @@ func TestPlainAndLogin(t *testing.T) {
 		challenges: []string{"Username:", "Password:"},
 		tls:        false,
 		wantProto:  "PLAIN",
-		wantData:   []string{testUser + "\x00" + testPwd},
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
 	})
 }
 
@@ -82,7 +82,7 @@ func TestPlainAndLoginTLS(t *testing.T) {
 		challenges: []string{"Username:", "Password:"},
 		tls:        true,
 		wantProto:  "PLAIN",
-		wantData:   []string{testUser + "\x00" + testPwd},
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
 	})
 }
 
