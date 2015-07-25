@@ -1,5 +1,5 @@
 # Gomail
-[![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2-unstable)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/github.com/go-gomail/gomail)](http://gocover.io/github.com/go-gomail/gomail) [![Documentation](https://godoc.org/github.com/go-gomail/gomail?status.svg)](https://godoc.org/github.com/go-gomail/gomail)
+[![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2-unstable)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/gopkg.in/gomail.v2-unstable)](http://gocover.io/gopkg.in/gomail.v2-unstable) [![Documentation](https://godoc.org/gopkg.in/gomail.v2-unstable?status.svg)](https://godoc.org/gopkg.in/gomail.v2-unstable)
 
 ## Introduction
 
