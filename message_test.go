@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
+	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -600,12 +601,10 @@ func testFile(name string) *File {
 }
 
 func BenchmarkFull(b *testing.B) {
-	buf := new(bytes.Buffer)
-	emptyFunc := func(from string, to []string, m io.WriterTo) error {
-		m.WriteTo(buf)
-		buf.Reset()
-		return nil
-	}
+	discardFunc := SendFunc(func(from string, to []string, m io.WriterTo) error {
+		_, err := m.WriteTo(ioutil.Discard)
+		return err
+	})
 
 	m := NewMessage()
 	b.ResetTimer()
@@ -622,7 +621,7 @@ func BenchmarkFull(b *testing.B) {
 		m.Attach(testFile("benchmark.txt"))
 		m.Embed(testFile("benchmark.jpg"))
 
-		if err := Send(SendFunc(emptyFunc), m); err != nil {
+		if err := Send(discardFunc, m); err != nil {
 			panic(err)
 		}
 		m.Reset()
