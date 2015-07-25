@@ -34,32 +34,9 @@ https://godoc.org/gopkg.in/gomail.v2-unstable
     go get gopkg.in/gomail.v2-unstable
 
 
-## Example
+## Examples
 
-```go
-package main
-
-import (
-	"gopkg.in/gomail.v2-unstable"
-)
-
-func main() {
-	msg := gomail.NewMessage()
-	msg.SetHeader("From", "alex@example.com")
-	msg.SetHeader("To", "bob@example.com", "cora@example.com")
-	msg.SetAddressHeader("Cc", "dan@example.com", "Dan")
-	msg.SetHeader("Subject", "Hello!")
-	msg.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
-	msg.Attach(gomail.NewFile("/home/Alex/lolcat.jpg"))
-
-	d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
-
-	// Send the email to Bob, Cora and Dan
-	if err := d.DialAndSend(msg); err != nil {
-		panic(err)
-	}
-}
-```
+See the [examples in the documentation](https://godoc.org/gopkg.in/gomail.v2-unstable#example-package).
 
 
 ## FAQ
@@ -101,10 +78,13 @@ If you want to support the development of Gomail, I gladly accept donations.
 I will give 100% of the money I receive to
 [Enfants, Espoir Du Monde](http://www.eedm.fr/).
 EEDM is a French NGO which helps children in Bangladesh, Cameroun, Haiti, India
-and Madagascar. All its members are volunteers so its operating costs are only
+and Madagascar.
+
+All its members are volunteers so its operating costs are only
 1.9%. So your money will directly helps children of these countries.
 
 As an added bonus, your donations will also tip me by lowering my taxes :smile:
+
 I will send an email with the receipt of the donation to EEDM annually to all
 donors.
 
