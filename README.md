@@ -56,7 +56,8 @@ Note, however, that this is insecure and should not be used in production.
 
 ## Contribute
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions are more than welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for
+more info.
 
 
 ## Change log
