@@ -1,6 +1,3 @@
-// Package gomail provides a simple interface to send emails.
-//
-// More info on Github: https://github.com/go-gomail/gomail
 package gomail
 
 import (
