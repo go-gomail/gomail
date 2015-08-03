@@ -4,9 +4,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.0.0] - unreleased
 - Mailer has been removed. It has been replaced by Dialer and Sender.
-- `CreateFile` has been removed and `OpenFile` has been renamed into `NewFile`.
-- `File` fields changed. The `File.Header` field replaces `File.MimeType`
-and `File.ContentID`.
+- `File` type and the `CreateFile` and `OpenFile` functions have been removed.
+- `Message.Attach` and `Message.Embed` have a new signature.
 - `Message.GetBodyWriter` has been removed. Use `Message.AddAlternativeWriter`
 instead.
 - `Message.Export` has been removed. `Message.WriteTo` can be used instead.

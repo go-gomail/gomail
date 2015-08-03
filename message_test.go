@@ -195,7 +195,7 @@ func TestAttachmentOnly(t *testing.T) {
 	m := NewMessage()
 	m.SetHeader("From", "from@example.com")
 	m.SetHeader("To", "to@example.com")
-	m.Attach(testFile("/tmp/test.pdf"))
+	m.Attach(mockCopyFile("/tmp/test.pdf"))
 
 	want := &message{
 		from: "from@example.com",
@@ -217,7 +217,7 @@ func TestAttachment(t *testing.T) {
 	m.SetHeader("From", "from@example.com")
 	m.SetHeader("To", "to@example.com")
 	m.SetBody("text/plain", "Test")
-	m.Attach(testFile("/tmp/test.pdf"))
+	m.Attach(mockCopyFile("/tmp/test.pdf"))
 
 	want := &message{
 		from: "from@example.com",
@@ -247,8 +247,8 @@ func TestAttachmentsOnly(t *testing.T) {
 	m := NewMessage()
 	m.SetHeader("From", "from@example.com")
 	m.SetHeader("To", "to@example.com")
-	m.Attach(testFile("/tmp/test.pdf"))
-	m.Attach(testFile("/tmp/test.zip"))
+	m.Attach(mockCopyFile("/tmp/test.pdf"))
+	m.Attach(mockCopyFile("/tmp/test.zip"))
 
 	want := &message{
 		from: "from@example.com",
@@ -280,8 +280,8 @@ func TestAttachments(t *testing.T) {
 	m.SetHeader("From", "from@example.com")
 	m.SetHeader("To", "to@example.com")
 	m.SetBody("text/plain", "Test")
-	m.Attach(testFile("/tmp/test.pdf"))
-	m.Attach(testFile("/tmp/test.zip"))
+	m.Attach(mockCopyFile("/tmp/test.pdf"))
+	m.Attach(mockCopyFile("/tmp/test.zip"))
 
 	want := &message{
 		from: "from@example.com",
@@ -317,10 +317,8 @@ func TestEmbedded(t *testing.T) {
 	m := NewMessage()
 	m.SetHeader("From", "from@example.com")
 	m.SetHeader("To", "to@example.com")
-	f := testFile("image1.jpg")
-	f.Header["Content-ID"] = []string{"<test-content-id>"}
-	m.Embed(f)
-	m.Embed(testFile("image2.jpg"))
+	m.Embed(mockCopyFileWithHeader(m, "image1.jpg", map[string][]string{"Content-ID": {"<test-content-id>"}}))
+	m.Embed(mockCopyFile("image2.jpg"))
 	m.SetBody("text/plain", "Test")
 
 	want := &message{
@@ -361,8 +359,8 @@ func TestFullMessage(t *testing.T) {
 	m.SetHeader("To", "to@example.com")
 	m.SetBody("text/plain", "¡Hola, señor!")
 	m.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
-	m.Attach(testFile("test.pdf"))
-	m.Embed(testFile("image.jpg"))
+	m.Attach(mockCopyFile("test.pdf"))
+	m.Embed(mockCopyFile("image.jpg"))
 
 	want := &message{
 		from: "from@example.com",
@@ -591,13 +589,16 @@ func getBoundaries(t *testing.T, count int, m string) []string {
 
 var boundaryRegExp = regexp.MustCompile("boundary=(\\w+)")
 
-func testFile(name string) *File {
-	f := NewFile(name)
-	f.Copier = func(w io.Writer) error {
-		_, err := w.Write([]byte("Content of " + filepath.Base(f.Name)))
+func mockCopyFile(name string) (string, FileSetting) {
+	return name, SetCopyFunc(func(w io.Writer) error {
+		_, err := w.Write([]byte("Content of " + filepath.Base(name)))
 		return err
-	}
-	return f
+	})
+}
+
+func mockCopyFileWithHeader(m *Message, name string, h map[string][]string) (string, FileSetting, FileSetting) {
+	name, f := mockCopyFile(name)
+	return name, f, SetHeader(h)
 }
 
 func BenchmarkFull(b *testing.B) {
@@ -618,8 +619,8 @@ func BenchmarkFull(b *testing.B) {
 		})
 		m.SetBody("text/plain", "¡Hola, señor!")
 		m.AddAlternative("text/html", "<p>¡Hola, señor!</p>")
-		m.Attach(testFile("benchmark.txt"))
-		m.Embed(testFile("benchmark.jpg"))
+		m.Attach(mockCopyFile("benchmark.txt"))
+		m.Embed(mockCopyFile("benchmark.jpg"))
 
 		if err := Send(discardFunc, m); err != nil {
 			panic(err)

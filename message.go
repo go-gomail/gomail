@@ -12,8 +12,8 @@ import (
 type Message struct {
 	header      header
 	parts       []part
-	attachments []*File
-	embedded    []*File
+	attachments []*file
+	embedded    []*file
 	charset     string
 	encoding    Encoding
 	hEncoder    mimeEncoder
@@ -106,10 +106,18 @@ const (
 
 // SetHeader sets a value to the given header field.
 func (m *Message) SetHeader(field string, value ...string) {
-	for i := range value {
-		value[i] = m.encodeHeader(value[i])
-	}
+	m.encodeHeader(value)
 	m.header[field] = value
+}
+
+func (m *Message) encodeHeader(values []string) {
+	for i := range values {
+		values[i] = m.encodeString(values[i])
+	}
+}
+
+func (m *Message) encodeString(value string) string {
+	return m.hEncoder.Encode(m.charset, value)
 }
 
 // SetHeaders sets the message headers.
@@ -134,7 +142,7 @@ func (m *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (m *Message) FormatAddress(address, name string) string {
-	enc := m.encodeHeader(name)
+	enc := m.encodeString(name)
 	if enc == name {
 		m.buf.WriteByte('"')
 		for i := 0; i < len(name); i++ {
@@ -168,10 +176,6 @@ func hasSpecials(text string) bool {
 	}
 
 	return false
-}
-
-func (m *Message) encodeHeader(value string) string {
-	return m.hEncoder.Encode(m.charset, value)
 }
 
 // SetDateHeader sets a date to the given header field.
@@ -254,27 +258,61 @@ func (m *Message) getPartHeader(contentType string) header {
 	}
 }
 
-// A File represents a file that can be attached or embedded in an email.
-type File struct {
-	// Name represents the base name of the file. If the file is attached to the
-	// message it is the name of the attachment.
-	Name string
-	// Header represents the MIME header of the message part that contains the
-	// file content. It is empty by default. Mandatory headers are automatically
-	// added if they are not sent when sending the email.
-	Header map[string][]string
-	// Copier is a function run when the message is sent. It should copy the
-	// content of the file to w.
-	Copier func(w io.Writer) error
+type file struct {
+	Name     string
+	Header   map[string][]string
+	CopyFunc func(w io.Writer) error
 }
 
-// NewFile creates a File from the given filename.
-func NewFile(filename string) *File {
-	return &File{
-		Name:   filepath.Base(filename),
+func (f *file) setHeader(field, value string) {
+	f.Header[field] = []string{value}
+}
+
+// A FileSetting can be used as an argument in Message.Attach or Message.Embed.
+type FileSetting func(*file)
+
+// SetHeader is a file setting to set the MIME header of the message part that
+// contains the file content.
+//
+// Mandatory headers are automatically added if they are not set when sending
+// the email.
+//
+// Example:
+//
+// 	h := map[string][]string{"Content-ID": {"<foo@bar.mail>"}}
+//	m.Attach("foo.jpg", gomail.SetHeader(h))
+func SetHeader(h map[string][]string) FileSetting {
+	return func(f *file) {
+		for k, v := range h {
+			f.Header[k] = v
+		}
+	}
+}
+
+// SetCopyFunc is a file setting to replace the function that runs when the
+// message is sent.
+// It should copy the content of the file to the io.Writer.
+// The default copy function opens the file with the given filename, and copy
+// its content to the io.Writer.
+//
+// Example:
+//
+//	m.Attach("foo.txt", gomail.SetCopyFunc(func(w io.Writer) error {
+// 		_, err := w.Write([]byte("Content of foo.txt"))
+// 		return err
+// 	}))
+func SetCopyFunc(f func(io.Writer) error) FileSetting {
+	return func(fi *file) {
+		fi.CopyFunc = f
+	}
+}
+
+func (m *Message) appendFile(list []*file, name string, settings []FileSetting) []*file {
+	f := &file{
+		Name:   filepath.Base(name),
 		Header: make(map[string][]string),
-		Copier: func(w io.Writer) error {
-			h, err := os.Open(filename)
+		CopyFunc: func(w io.Writer) error {
+			h, err := os.Open(name)
 			if err != nil {
 				return err
 			}
@@ -285,35 +323,33 @@ func NewFile(filename string) *File {
 			return h.Close()
 		},
 	}
-}
 
-func (f *File) setHeader(field string, value ...string) {
-	f.Header[field] = value
+	for _, s := range settings {
+		s(f)
+	}
+
+	if list == nil {
+		return []*file{f}
+	}
+
+	return append(list, f)
 }
 
 // Attach attaches the files to the email.
 //
 // Example:
 //
-//	m.Attach(gomail.NewFile("/tmp/image.jpg"))
-func (m *Message) Attach(f ...*File) {
-	if m.attachments == nil {
-		m.attachments = f
-	} else {
-		m.attachments = append(m.attachments, f...)
-	}
+//	m.Attach("/tmp/image.jpg")
+func (m *Message) Attach(filename string, settings ...FileSetting) {
+	m.attachments = m.appendFile(m.attachments, filename, settings)
 }
 
 // Embed embeds the images to the email.
 //
 // Example:
 //
-//	m.Embed(gomail.NewFile("/tmp/image.jpg"))
+//	m.Embed("/tmp/image.jpg")
 //	m.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)
-func (m *Message) Embed(image ...*File) {
-	if m.embedded == nil {
-		m.embedded = image
-	} else {
-		m.embedded = append(m.embedded, image...)
-	}
+func (m *Message) Embed(filename string, settings ...FileSetting) {
+	m.embedded = m.appendFile(m.embedded, filename, settings)
 }

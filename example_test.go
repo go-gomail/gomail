@@ -15,7 +15,7 @@ func Example() {
 	m.SetAddressHeader("Cc", "dan@example.com", "Dan")
 	m.SetHeader("Subject", "Hello!")
 	m.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
-	m.Attach(gomail.NewFile("/home/Alex/lolcat.jpg"))
+	m.Attach("/home/Alex/lolcat.jpg")
 
 	d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
 

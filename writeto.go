@@ -104,7 +104,7 @@ func (w *messageWriter) closeMultipart() {
 	}
 }
 
-func (w *messageWriter) addFiles(files []*File, isAttachment bool) {
+func (w *messageWriter) addFiles(files []*file, isAttachment bool) {
 	for _, f := range files {
 		if _, ok := f.Header["Content-Type"]; !ok {
 			mediaType := mime.TypeByExtension(filepath.Ext(f.Name))
@@ -134,7 +134,7 @@ func (w *messageWriter) addFiles(files []*File, isAttachment bool) {
 			}
 		}
 		w.writeHeaders(f.Header)
-		w.writeBody(f.Copier, Base64)
+		w.writeBody(f.CopyFunc, Base64)
 	}
 }
 
