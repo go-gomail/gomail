@@ -193,11 +193,6 @@ func (m *Message) GetHeader(field string) []string {
 	return m.header[field]
 }
 
-// DelHeader deletes a header field.
-func (m *Message) DelHeader(field string) {
-	delete(m.header, field)
-}
-
 // SetBody sets the body of the message.
 func (m *Message) SetBody(contentType, body string) {
 	m.parts = []part{
