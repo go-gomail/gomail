@@ -2,7 +2,9 @@ package gomail_test
 
 import (
 	"fmt"
+	"html/template"
 	"io"
+	"log"
 	"time"
 
 	"gopkg.in/gomail.v2-unstable"
@@ -25,6 +27,7 @@ func Example() {
 	}
 }
 
+// A daemon that listens to a channel and sends all incoming messages.
 func Example_daemon() {
 	ch := make(chan *gomail.Message)
 
@@ -47,13 +50,15 @@ func Example_daemon() {
 					open = true
 				}
 				if err := gomail.Send(s, m); err != nil {
-					panic(err)
+					log.Print(err)
 				}
 			// Close the connection to the SMTP server if no email was sent in
 			// the last 30 seconds.
 			case <-time.After(30 * time.Second):
 				if open {
-					s.Close()
+					if err := s.Close(); err != nil {
+						panic(err)
+					}
 					open = false
 				}
 			}
@@ -66,6 +71,34 @@ func Example_daemon() {
 	close(ch)
 }
 
+// Efficiently send a customized newsletter to a list of recipients.
+func Example_newsletter() {
+	// The list of recipient.
+	var list []struct {
+		Name    string
+		Address string
+	}
+
+	d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
+	s, err := d.Dial()
+	if err != nil {
+		panic(err)
+	}
+
+	m := gomail.NewMessage()
+	for _, r := range list {
+		m.SetHeader("From", "no-reply@example.com")
+		m.SetAddressHeader("To", r.Address, r.Name)
+		m.SetHeader("Subject", "Newsletter #1")
+		m.SetBody("text/html", fmt.Sprintf("Hello %s!", r.Name))
+		if err := gomail.Send(s, m); err != nil {
+			log.Printf("Could not send email to %q: %v", r.Address, err)
+		}
+		m.Reset()
+	}
+}
+
+// Send an email using a local SMTP server.
 func Example_noAuth() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "from@example.com")
@@ -73,12 +106,13 @@ func Example_noAuth() {
 	m.SetHeader("Subject", "Hello!")
 	m.SetBody("text/plain", "Hello!")
 
-	d := gomail.Dialer{Host: "smtp.example.com", Port: 587}
+	d := gomail.Dialer{Host: "localhost", Port: 587}
 	if err := d.DialAndSend(m); err != nil {
 		panic(err)
 	}
 }
 
+// Send an email using an API or postfix.
 func Example_send() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "from@example.com")
@@ -100,4 +134,63 @@ func Example_send() {
 	// Output:
 	// From: from@example.com
 	// To: [to@example.com]
+}
+
+var m *gomail.Message
+
+func ExampleSetCharset() {
+	m = gomail.NewMessage(gomail.SetCharset("ISO-8859-1"))
+}
+
+func ExampleSetEncoding() {
+	m = gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
+}
+
+func ExampleMessage_SetHeaders() {
+	m.SetHeaders(map[string][]string{
+		"From":    {m.FormatAddress("alex@example.com", "Alex")},
+		"To":      {"bob@example.com", "cora@example.com"},
+		"Subject": {"Hello"},
+	})
+}
+
+func ExampleMessage_FormatAddress() {
+	m.SetHeader("To", m.FormatAddress("bob@example.com", "Bob"), m.FormatAddress("cora@example.com", "Cora"))
+}
+
+func ExampleMessage_SetDateHeader() {
+	m.SetDateHeader("X-Date", time.Now())
+}
+
+func ExampleMessage_AddAlternative() {
+	m.SetBody("text/plain", "Hello!")
+	m.AddAlternative("text/html", "<p>Hello!</p>")
+}
+
+func ExampleMessage_AddAlternativeWriter() {
+	t := template.Must(template.New("example").Parse("Hello {{.}}!"))
+	m.AddAlternativeWriter("text/plain", func(w io.Writer) error {
+		return t.Execute(w, "Bob")
+	})
+}
+
+func ExampleSetHeader() {
+	h := map[string][]string{"Content-ID": {"<foo@bar.mail>"}}
+	m.Attach("foo.jpg", gomail.SetHeader(h))
+}
+
+func ExampleSetCopyFunc() {
+	m.Attach("foo.txt", gomail.SetCopyFunc(func(w io.Writer) error {
+		_, err := w.Write([]byte("Content of foo.txt"))
+		return err
+	}))
+}
+
+func ExampleMessage_Attach() {
+	m.Attach("/tmp/image.jpg")
+}
+
+func ExampleMessage_Embed() {
+	m.Embed("/tmp/image.jpg")
+	m.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)
 }

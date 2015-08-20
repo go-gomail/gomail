@@ -69,10 +69,6 @@ func (m *Message) applySettings(settings []MessageSetting) {
 type MessageSetting func(m *Message)
 
 // SetCharset is a message setting to set the charset of the email.
-//
-// Example:
-//
-//	m := gomail.NewMessage(gomail.SetCharset("ISO-8859-1"))
 func SetCharset(charset string) MessageSetting {
 	return func(m *Message) {
 		m.charset = charset
@@ -80,10 +76,6 @@ func SetCharset(charset string) MessageSetting {
 }
 
 // SetEncoding is a message setting to set the encoding of the email.
-//
-// Example:
-//
-//	m := gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
 func SetEncoding(enc Encoding) MessageSetting {
 	return func(m *Message) {
 		m.encoding = enc
@@ -121,14 +113,6 @@ func (m *Message) encodeString(value string) string {
 }
 
 // SetHeaders sets the message headers.
-//
-// Example:
-//
-//	m.SetHeaders(map[string][]string{
-//		"From":    {"alex@example.com"},
-//		"To":      {"bob@example.com", "cora@example.com"},
-//		"Subject": {"Hello"},
-//	})
 func (m *Message) SetHeaders(h map[string][]string) {
 	for k, v := range h {
 		m.SetHeader(k, v...)
@@ -210,11 +194,6 @@ func (m *Message) SetBody(contentType, body string) {
 // send HTML emails that default to the plain text version for backward
 // compatibility.
 //
-// Example:
-//
-//	m.SetBody("text/plain", "Hello!")
-//	m.AddAlternative("text/html", "<p>Hello!</p>")
-//
 // More info: http://en.wikipedia.org/wiki/MIME#Alternative
 func (m *Message) AddAlternative(contentType, body string) {
 	m.parts = append(m.parts,
@@ -230,13 +209,6 @@ func (m *Message) AddAlternative(contentType, body string) {
 
 // AddAlternativeWriter adds an alternative part to the message. It can be
 // useful with the text/template and html/template packages.
-//
-// Example:
-//
-//	t := template.Must(template.New("example").Parse("Hello {{.}}!"))
-//	m.AddAlternativeWriter("text/plain", func(w io.Writer) error {
-//		return t.Execute(w, "Bob")
-//	})
 func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
 	m.parts = []part{
 		{
@@ -271,11 +243,6 @@ type FileSetting func(*file)
 //
 // Mandatory headers are automatically added if they are not set when sending
 // the email.
-//
-// Example:
-//
-// 	h := map[string][]string{"Content-ID": {"<foo@bar.mail>"}}
-//	m.Attach("foo.jpg", gomail.SetHeader(h))
 func SetHeader(h map[string][]string) FileSetting {
 	return func(f *file) {
 		for k, v := range h {
@@ -289,13 +256,6 @@ func SetHeader(h map[string][]string) FileSetting {
 // It should copy the content of the file to the io.Writer.
 // The default copy function opens the file with the given filename, and copy
 // its content to the io.Writer.
-//
-// Example:
-//
-//	m.Attach("foo.txt", gomail.SetCopyFunc(func(w io.Writer) error {
-// 		_, err := w.Write([]byte("Content of foo.txt"))
-// 		return err
-// 	}))
 func SetCopyFunc(f func(io.Writer) error) FileSetting {
 	return func(fi *file) {
 		fi.CopyFunc = f
@@ -331,20 +291,11 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 }
 
 // Attach attaches the files to the email.
-//
-// Example:
-//
-//	m.Attach("/tmp/image.jpg")
 func (m *Message) Attach(filename string, settings ...FileSetting) {
 	m.attachments = m.appendFile(m.attachments, filename, settings)
 }
 
 // Embed embeds the images to the email.
-//
-// Example:
-//
-//	m.Embed("/tmp/image.jpg")
-//	m.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)
 func (m *Message) Embed(filename string, settings ...FileSetting) {
 	m.embedded = m.appendFile(m.embedded, filename, settings)
 }
