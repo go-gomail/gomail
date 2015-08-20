@@ -65,6 +65,11 @@ more info.
 See [CHANGELOG.md](CHANGELOG.md).
 
 
+## License
+
+[MIT](LICENSE)
+
+
 ## Contact
 
 You can ask questions on the [Gomail
