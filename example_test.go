@@ -21,7 +21,7 @@ func Example() {
 
 	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
 
-	// Send the email to Bob, Cora and Dan
+	// Send the email to Bob, Cora and Dan.
 	if err := d.DialAndSend(m); err != nil {
 		panic(err)
 	}
@@ -113,7 +113,7 @@ func Example_noAuth() {
 }
 
 // Send an email using an API or postfix.
-func Example_send() {
+func Example_noSMTP() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "from@example.com")
 	m.SetHeader("To", "to@example.com")
@@ -138,28 +138,16 @@ func Example_send() {
 
 var m *gomail.Message
 
-func ExampleSetCharset() {
-	m = gomail.NewMessage(gomail.SetCharset("ISO-8859-1"))
+func ExampleSetCopyFunc() {
+	m.Attach("foo.txt", gomail.SetCopyFunc(func(w io.Writer) error {
+		_, err := w.Write([]byte("Content of foo.txt"))
+		return err
+	}))
 }
 
-func ExampleSetEncoding() {
-	m = gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
-}
-
-func ExampleMessage_SetHeaders() {
-	m.SetHeaders(map[string][]string{
-		"From":    {m.FormatAddress("alex@example.com", "Alex")},
-		"To":      {"bob@example.com", "cora@example.com"},
-		"Subject": {"Hello"},
-	})
-}
-
-func ExampleMessage_FormatAddress() {
-	m.SetHeader("To", m.FormatAddress("bob@example.com", "Bob"), m.FormatAddress("cora@example.com", "Cora"))
-}
-
-func ExampleMessage_SetDateHeader() {
-	m.SetDateHeader("X-Date", time.Now())
+func ExampleSetHeader() {
+	h := map[string][]string{"Content-ID": {"<foo@bar.mail>"}}
+	m.Attach("foo.jpg", gomail.SetHeader(h))
 }
 
 func ExampleMessage_AddAlternative() {
@@ -174,18 +162,6 @@ func ExampleMessage_AddAlternativeWriter() {
 	})
 }
 
-func ExampleSetHeader() {
-	h := map[string][]string{"Content-ID": {"<foo@bar.mail>"}}
-	m.Attach("foo.jpg", gomail.SetHeader(h))
-}
-
-func ExampleSetCopyFunc() {
-	m.Attach("foo.txt", gomail.SetCopyFunc(func(w io.Writer) error {
-		_, err := w.Write([]byte("Content of foo.txt"))
-		return err
-	}))
-}
-
 func ExampleMessage_Attach() {
 	m.Attach("/tmp/image.jpg")
 }
@@ -193,4 +169,46 @@ func ExampleMessage_Attach() {
 func ExampleMessage_Embed() {
 	m.Embed("/tmp/image.jpg")
 	m.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)
+}
+
+func ExampleMessage_FormatAddress() {
+	m.SetHeader("To", m.FormatAddress("bob@example.com", "Bob"), m.FormatAddress("cora@example.com", "Cora"))
+}
+
+func ExampleMessage_FormatDate() {
+	m.SetHeaders(map[string][]string{
+		"X-Date": {m.FormatDate(time.Now())},
+	})
+}
+
+func ExampleMessage_SetAddressHeader() {
+	m.SetAddressHeader("To", "bob@example.com", "Bob")
+}
+
+func ExampleMessage_SetBody() {
+	m.SetBody("text/plain", "Hello!")
+}
+
+func ExampleMessage_SetDateHeader() {
+	m.SetDateHeader("X-Date", time.Now())
+}
+
+func ExampleMessage_SetHeader() {
+	m.SetHeader("Subject", "Hello!")
+}
+
+func ExampleMessage_SetHeaders() {
+	m.SetHeaders(map[string][]string{
+		"From":    {m.FormatAddress("alex@example.com", "Alex")},
+		"To":      {"bob@example.com", "cora@example.com"},
+		"Subject": {"Hello"},
+	})
+}
+
+func ExampleSetCharset() {
+	m = gomail.NewMessage(gomail.SetCharset("ISO-8859-1"))
+}
+
+func ExampleSetEncoding() {
+	m = gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
 }

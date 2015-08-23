@@ -190,9 +190,10 @@ func (m *Message) SetBody(contentType, body string) {
 	}
 }
 
-// AddAlternative adds an alternative part to the message. Commonly used to
-// send HTML emails that default to the plain text version for backward
-// compatibility.
+// AddAlternative adds an alternative part to the message.
+//
+// It is commonly used to send HTML emails that default to the plain text
+// version for backward compatibility.
 //
 // More info: http://en.wikipedia.org/wiki/MIME#Alternative
 func (m *Message) AddAlternative(contentType, body string) {
@@ -208,7 +209,7 @@ func (m *Message) AddAlternative(contentType, body string) {
 }
 
 // AddAlternativeWriter adds an alternative part to the message. It can be
-// useful with the text/template and html/template packages.
+// useful with the text/template or html/template packages.
 func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
 	m.parts = []part{
 		{
@@ -252,8 +253,8 @@ func SetHeader(h map[string][]string) FileSetting {
 }
 
 // SetCopyFunc is a file setting to replace the function that runs when the
-// message is sent.
-// It should copy the content of the file to the io.Writer.
+// message is sent. It should copy the content of the file to the io.Writer.
+//
 // The default copy function opens the file with the given filename, and copy
 // its content to the io.Writer.
 func SetCopyFunc(f func(io.Writer) error) FileSetting {
