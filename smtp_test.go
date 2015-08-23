@@ -21,7 +21,7 @@ var (
 )
 
 func TestDialer(t *testing.T) {
-	d := NewPlainDialer(testHost, "user", "pwd", testPort)
+	d := NewPlainDialer(testHost, testPort, "user", "pwd")
 	testSendMail(t, d, []string{
 		"Extension STARTTLS",
 		"StartTLS",
@@ -39,7 +39,7 @@ func TestDialer(t *testing.T) {
 }
 
 func TestDialerSSL(t *testing.T) {
-	d := NewPlainDialer(testHost, "user", "pwd", testSSLPort)
+	d := NewPlainDialer(testHost, testSSLPort, "user", "pwd")
 	testSendMail(t, d, []string{
 		"Extension AUTH",
 		"Auth",
@@ -55,7 +55,7 @@ func TestDialerSSL(t *testing.T) {
 }
 
 func TestDialerConfig(t *testing.T) {
-	d := NewPlainDialer(testHost, "user", "pwd", testPort)
+	d := NewPlainDialer(testHost, testPort, "user", "pwd")
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
 		"Extension STARTTLS",
@@ -74,7 +74,7 @@ func TestDialerConfig(t *testing.T) {
 }
 
 func TestDialerSSLConfig(t *testing.T) {
-	d := NewPlainDialer(testHost, "user", "pwd", testSSLPort)
+	d := NewPlainDialer(testHost, testSSLPort, "user", "pwd")
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
 		"Extension AUTH",

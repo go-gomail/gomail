@@ -19,7 +19,7 @@ func Example() {
 	m.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
 	m.Attach("/home/Alex/lolcat.jpg")
 
-	d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
+	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
 
 	// Send the email to Bob, Cora and Dan
 	if err := d.DialAndSend(m); err != nil {
@@ -32,7 +32,7 @@ func Example_daemon() {
 	ch := make(chan *gomail.Message)
 
 	go func() {
-		d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
+		d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
 
 		var s gomail.SendCloser
 		var err error
@@ -79,7 +79,7 @@ func Example_newsletter() {
 		Address string
 	}
 
-	d := gomail.NewPlainDialer("smtp.example.com", "user", "123456", 587)
+	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
 	s, err := d.Dial()
 	if err != nil {
 		panic(err)

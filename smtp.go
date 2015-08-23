@@ -29,7 +29,7 @@ type Dialer struct {
 // NewPlainDialer returns a Dialer. The given parameters are used to connect to
 // the SMTP server via a PLAIN authentication mechanism. It fallbacks to the
 // LOGIN mechanism if it is the only mechanism advertised by the server.
-func NewPlainDialer(host, username, password string, port int) *Dialer {
+func NewPlainDialer(host string, port int, username, password string) *Dialer {
 	return &Dialer{
 		Host: host,
 		Port: port,
