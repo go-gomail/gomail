@@ -73,7 +73,7 @@ func Example_daemon() {
 
 // Efficiently send a customized newsletter to a list of recipients.
 func Example_newsletter() {
-	// The list of recipient.
+	// The list of recipients.
 	var list []struct {
 		Name    string
 		Address string
@@ -91,6 +91,7 @@ func Example_newsletter() {
 		m.SetAddressHeader("To", r.Address, r.Name)
 		m.SetHeader("Subject", "Newsletter #1")
 		m.SetBody("text/html", fmt.Sprintf("Hello %s!", r.Name))
+
 		if err := gomail.Send(s, m); err != nil {
 			log.Printf("Could not send email to %q: %v", r.Address, err)
 		}
