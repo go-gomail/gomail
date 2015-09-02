@@ -9,7 +9,7 @@ documented.
 It is versioned using [gopkg.in](https://gopkg.in) so I promise
 they will never be backward incompatible changes within each version.
 
-It requires Go 1.2 or newer.
+It requires Go 1.2 or newer. With Go 1.5, no external dependencies are used.
 
 
 ## Features
