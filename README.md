@@ -73,7 +73,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 ## Contact
 
 You can ask questions on the [Gomail
-thread](https://groups.google.com/d/topic/golang-nuts/ywPpNlmSt6U/discussion)
+thread](https://groups.google.com/d/topic/golang-nuts/jMxZHzvvEVg/discussion)
 in the Go mailing-list.
 
 
