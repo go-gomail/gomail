@@ -1,5 +1,5 @@
 # Gomail
-[![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2-unstable)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/gopkg.in/gomail.v2-unstable)](http://gocover.io/gopkg.in/gomail.v2-unstable) [![Documentation](https://godoc.org/gopkg.in/gomail.v2-unstable?status.svg)](https://godoc.org/gopkg.in/gomail.v2-unstable)
+[![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/gopkg.in/gomail.v2)](http://gocover.io/gopkg.in/gomail.v2) [![Documentation](https://godoc.org/gopkg.in/gomail.v2?status.svg)](https://godoc.org/gopkg.in/gomail.v2)
 
 ## Introduction
 
@@ -26,17 +26,17 @@ Gomail supports:
 
 ## Documentation
 
-https://godoc.org/gopkg.in/gomail.v2-unstable
+https://godoc.org/gopkg.in/gomail.v2
 
 
 ## Download
 
-    go get gopkg.in/gomail.v2-unstable
+    go get gopkg.in/gomail.v2
 
 
 ## Examples
 
-See the [examples in the documentation](https://godoc.org/gopkg.in/gomail.v2-unstable#example-package).
+See the [examples in the documentation](https://godoc.org/gopkg.in/gomail.v2#example-package).
 
 
 ## FAQ

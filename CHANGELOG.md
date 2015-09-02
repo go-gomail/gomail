@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [2.0.0] - unreleased
+## [2.0.0] - 2015-09-02
 
 - Mailer has been removed. It has been replaced by Dialer and Sender.
 - `File` type and the `CreateFile` and `OpenFile` functions have been removed.

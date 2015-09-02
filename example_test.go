@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"gopkg.in/gomail.v2-unstable"
+	"gopkg.in/gomail.v2"
 )
 
 func Example() {
