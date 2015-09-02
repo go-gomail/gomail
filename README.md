@@ -6,6 +6,10 @@
 Gomail is a simple and efficient package to send emails. It is well tested and
 documented.
 
+Gomail can only send emails using an SMTP server. But the API is flexible and it
+is easy to implement other methods for sending emails using a local Postfix, an
+API, etc.
+
 It is versioned using [gopkg.in](https://gopkg.in) so I promise
 they will never be backward incompatible changes within each version.
 
@@ -21,7 +25,6 @@ Gomail supports:
 - Automatic encoding of special characters
 - SSL and TLS
 - Sending multiple emails with the same SMTP connection
-- Any method to send emails: SMTP, postfix (not included but easily doable), etc
 
 
 ## Documentation
