@@ -89,8 +89,8 @@ I will give 100% of the money I receive to
 EEDM is a French NGO which helps children in Bangladesh, Cameroun, Haiti, India
 and Madagascar.
 
-All its members are volunteers so its operating costs are only
-1.9%. So your money will directly helps children of these countries.
+All its members are volunteers so its operating costs are only 1.9%. So your
+money will directly help children of these countries.
 
 As an added bonus, your donations will also tip me by lowering my taxes :smile:
 
