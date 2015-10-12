@@ -313,6 +313,44 @@ func TestAttachments(t *testing.T) {
 	testMessage(t, m, 1, want)
 }
 
+func TestAttachmentsWithReader(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "Test")
+	m.AttachWithReader("test.pdf", bytes.NewBuffer([]byte("Reader test.pdf")))
+	m.AttachWithReader("test.zip", bytes.NewBuffer([]byte("Reader test.zip")))
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
+			"\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/plain; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"Test\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
+			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Reader test.pdf")) + "\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: application/zip; name=\"test.zip\"\r\n" +
+			"Content-Disposition: attachment; filename=\"test.zip\"\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Reader test.zip")) + "\r\n" +
+			"--_BOUNDARY_1_--\r\n",
+	}
+
+	testMessage(t, m, 1, want)
+}
+
 func TestEmbedded(t *testing.T) {
 	m := NewMessage()
 	m.SetHeader("From", "from@example.com")
@@ -347,6 +385,38 @@ func TestEmbedded(t *testing.T) {
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
 			base64.StdEncoding.EncodeToString([]byte("Content of image2.jpg")) + "\r\n" +
+			"--_BOUNDARY_1_--\r\n",
+	}
+
+	testMessage(t, m, 1, want)
+}
+
+func TestEmbeddedWithReader(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.EmbedWithReader("image1.jpg", bytes.NewBuffer([]byte("Reader image1.jpg")))
+	m.SetBody("text/plain", "Test")
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: multipart/related; boundary=_BOUNDARY_1_\r\n" +
+			"\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/plain; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"Test\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: image/jpeg; name=\"image1.jpg\"\r\n" +
+			"Content-Disposition: inline; filename=\"image1.jpg\"\r\n" +
+			"Content-ID: <image1.jpg>\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Reader image1.jpg")) + "\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 
