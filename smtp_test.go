@@ -56,8 +56,10 @@ func TestDialerSSL(t *testing.T) {
 
 func TestDialerConfig(t *testing.T) {
 	d := NewPlainDialer(testHost, testPort, "user", "pwd")
+	d.LocalName = "test"
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
+		"Hello test",
 		"Extension STARTTLS",
 		"StartTLS",
 		"Extension AUTH",
@@ -75,8 +77,10 @@ func TestDialerConfig(t *testing.T) {
 
 func TestDialerSSLConfig(t *testing.T) {
 	d := NewPlainDialer(testHost, testSSLPort, "user", "pwd")
+	d.LocalName = "test"
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
+		"Hello test",
 		"Extension AUTH",
 		"Auth",
 		"Mail " + testFrom,
@@ -116,6 +120,11 @@ type mockClient struct {
 	addr   string
 	auth   smtp.Auth
 	config *tls.Config
+}
+
+func (c *mockClient) Hello(localName string) error {
+	c.do("Hello " + localName)
+	return nil
 }
 
 func (c *mockClient) Extension(ext string) (bool, string) {
