@@ -14,6 +14,9 @@ type Dialer struct {
 	Host string
 	// Port represents the port of the SMTP server.
 	Port int
+	// LocalName is the host name sent to the SMTP server with the HELO command.
+	// The default is to use "localhost".
+	LocalName string
 	// Auth represents the authentication mechanism used to authenticate to the
 	// SMTP server.
 	Auth smtp.Auth
@@ -77,6 +80,12 @@ func (d *Dialer) starttlsDial() (smtpClient, error) {
 		return nil, err
 	}
 
+	if d.LocalName != "" {
+		if err := c.Hello(d.LocalName); err != nil {
+			return nil, err
+		}
+	}
+
 	if ok, _ := c.Extension("STARTTLS"); ok {
 		if err := c.StartTLS(d.tlsConfig()); err != nil {
 			c.Close()
@@ -93,7 +102,18 @@ func (d *Dialer) sslDial() (smtpClient, error) {
 		return nil, err
 	}
 
-	return newClient(conn, d.Host)
+	c, err := newClient(conn, d.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	if d.LocalName != "" {
+		if err := c.Hello(d.LocalName); err != nil {
+			return nil, err
+		}
+	}
+
+	return c, nil
 }
 
 func (d *Dialer) tlsConfig() *tls.Config {
@@ -164,6 +184,7 @@ var (
 )
 
 type smtpClient interface {
+	Hello(string) error
 	Extension(string) (bool, string)
 	StartTLS(*tls.Config) error
 	Auth(smtp.Auth) error
