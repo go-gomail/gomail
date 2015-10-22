@@ -477,6 +477,22 @@ func TestBase64LineLength(t *testing.T) {
 	testMessage(t, m, 0, want)
 }
 
+func TestEmptyHeader(t *testing.T) {
+	m := NewMessage()
+	m.SetHeaders(map[string][]string{
+		"From":    {"from@example.com"},
+		"X-Empty": nil,
+	})
+
+	want := &message{
+		from: "from@example.com",
+		content: "From: from@example.com\r\n" +
+			"X-Empty: \r\n",
+	}
+
+	testMessage(t, m, 0, want)
+}
+
 func testMessage(t *testing.T, m *Message, bCount int, want *message) {
 	err := Send(stubSendMail(t, bCount, want), m)
 	if err != nil {

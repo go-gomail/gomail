@@ -154,23 +154,16 @@ func (w *messageWriter) writeString(s string) {
 	w.n += int64(n)
 }
 
-func (w *messageWriter) writeStrings(a []string, sep string) {
-	if len(a) > 0 {
-		w.writeString(a[0])
-		if len(a) == 1 {
-			return
-		}
-	}
-	for _, s := range a[1:] {
-		w.writeString(sep)
-		w.writeString(s)
-	}
-}
-
 func (w *messageWriter) writeHeader(k string, v ...string) {
 	w.writeString(k)
 	w.writeString(": ")
-	w.writeStrings(v, ", ")
+	if len(v) > 0 {
+		w.writeString(v[0])
+		for _, s := range v[1:] {
+			w.writeString(", ")
+			w.writeString(s)
+		}
+	}
 	w.writeString("\r\n")
 }
 
