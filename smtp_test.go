@@ -132,6 +132,11 @@ func (c *mockClient) Extension(ext string) (bool, string) {
 	return true, ""
 }
 
+func (c *mockClient) Hello(localName string) error {
+	c.do("Hello " + localName)
+	return nil
+}
+
 func (c *mockClient) StartTLS(config *tls.Config) error {
 	assertConfig(c.t, config, c.config)
 	c.do("StartTLS")

@@ -14,6 +14,9 @@ type Dialer struct {
 	Host string
 	// Port represents the port of the SMTP server.
 	Port int
+	// LocalName is the host name sent to the SMTP server with the HELO command.
+	// The default is to use "localhost".
+	LocalName string
 	// Auth represents the authentication mechanism used to authenticate to the
 	// SMTP server.
 	Auth smtp.Auth
