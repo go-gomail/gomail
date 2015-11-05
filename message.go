@@ -197,26 +197,22 @@ func (m *Message) SetBody(contentType, body string) {
 //
 // More info: http://en.wikipedia.org/wiki/MIME#Alternative
 func (m *Message) AddAlternative(contentType, body string) {
-	m.parts = append(m.parts,
-		part{
-			header: m.getPartHeader(contentType),
-			copier: func(w io.Writer) error {
-				_, err := io.WriteString(w, body)
-				return err
-			},
+	m.parts = append(m.parts, part{
+		header: m.getPartHeader(contentType),
+		copier: func(w io.Writer) error {
+			_, err := io.WriteString(w, body)
+			return err
 		},
-	)
+	})
 }
 
 // AddAlternativeWriter adds an alternative part to the message. It can be
 // useful with the text/template or html/template packages.
 func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
-	m.parts = []part{
-		{
-			header: m.getPartHeader(contentType),
-			copier: f,
-		},
-	}
+	m.parts = append(m.parts, part{
+		header: m.getPartHeader(contentType),
+		copier: f,
+	})
 }
 
 func (m *Message) getPartHeader(contentType string) header {
