@@ -177,7 +177,8 @@ func (m *Message) GetHeader(field string) []string {
 	return m.header[field]
 }
 
-// SetBody sets the body of the message.
+// SetBody sets the body of the message. It replaces any content previously set
+// by SetBody, AddAlternative or AddAlternativeWriter.
 func (m *Message) SetBody(contentType, body string) {
 	m.parts = []part{
 		{
@@ -193,9 +194,9 @@ func (m *Message) SetBody(contentType, body string) {
 // AddAlternative adds an alternative part to the message.
 //
 // It is commonly used to send HTML emails that default to the plain text
-// version for backward compatibility.
-//
-// More info: http://en.wikipedia.org/wiki/MIME#Alternative
+// version for backward compatibility. AddAlternative appends the new part to
+// the end of the message. So the plain text part should be added before the
+// HTML part. See http://en.wikipedia.org/wiki/MIME#Alternative
 func (m *Message) AddAlternative(contentType, body string) {
 	m.parts = append(m.parts, part{
 		header: m.getPartHeader(contentType),
