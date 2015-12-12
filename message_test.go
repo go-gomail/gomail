@@ -168,6 +168,36 @@ func TestAlternative(t *testing.T) {
 	testMessage(t, m, 1, want)
 }
 
+func TestPartSetting(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain; format=flowed", "¡Hola, señor!", SetPartEncoding(Unencoded))
+	m.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: multipart/alternative; boundary=_BOUNDARY_1_\r\n" +
+			"\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/plain; format=flowed; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: 8bit\r\n" +
+			"\r\n" +
+			"¡Hola, señor!\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/html; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"=C2=A1<b>Hola</b>, <i>se=C3=B1or</i>!</h1>\r\n" +
+			"--_BOUNDARY_1_--\r\n",
+	}
+
+	testMessage(t, m, 1, want)
+}
+
 func TestBodyWriter(t *testing.T) {
 	m := NewMessage()
 	m.SetHeader("From", "from@example.com")

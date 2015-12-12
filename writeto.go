@@ -38,8 +38,7 @@ func (w *messageWriter) writeMessage(m *Message) {
 		w.openMultipart("alternative")
 	}
 	for _, part := range m.parts {
-		w.writeHeaders(part.header)
-		w.writeBody(part.copier, m.encoding)
+		w.writePart(part, m.charset)
 	}
 	if m.hasAlternativePart() {
 		w.closeMultipart()
@@ -102,6 +101,14 @@ func (w *messageWriter) closeMultipart() {
 		w.writers[w.depth-1].Close()
 		w.depth--
 	}
+}
+
+func (w *messageWriter) writePart(p *part, charset string) {
+	w.writeHeaders(map[string][]string{
+		"Content-Type":              {p.contentType + "; charset=" + charset},
+		"Content-Transfer-Encoding": {string(p.encoding)},
+	})
+	w.writeBody(p.copier, p.encoding)
 }
 
 func (w *messageWriter) addFiles(files []*file, isAttachment bool) {
