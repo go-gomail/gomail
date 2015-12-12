@@ -214,6 +214,6 @@ func ExampleSetEncoding() {
 	m = gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
 }
 
-func ExampleWithEncoding() {
+func ExampleSetPartEncoding() {
 	m.SetBody("text/plain", "Hello!", gomail.SetPartEncoding(gomail.Unencoded))
 }
