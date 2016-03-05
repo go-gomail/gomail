@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"net/smtp"
 	"time"
 
 	"gopkg.in/gomail.v2"
@@ -108,6 +109,24 @@ func Example_noAuth() {
 	m.SetBody("text/plain", "Hello!")
 
 	d := gomail.Dialer{Host: "localhost", Port: 587}
+	if err := d.DialAndSend(m); err != nil {
+		panic(err)
+	}
+}
+
+// Send an email using the CRAM-MD5 authentication mechanism.
+func Example_CRAM_MD5() {
+	m := gomail.NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetHeader("Subject", "Hello!")
+	m.SetBody("text/plain", "Hello!")
+
+	d := gomail.Dialer{
+		Host: "localhost",
+		Port: 587,
+		Auth: smtp.CRAMMD5Auth("username", "secret"),
+	}
 	if err := d.DialAndSend(m); err != nil {
 		panic(err)
 	}
