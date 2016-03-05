@@ -78,23 +78,3 @@ See [CHANGELOG.md](CHANGELOG.md).
 You can ask questions on the [Gomail
 thread](https://groups.google.com/d/topic/golang-nuts/jMxZHzvvEVg/discussion)
 in the Go mailing-list.
-
-
-## Support
-
-If you want to support the development of Gomail, I gladly accept donations.
-
-I will give 100% of the money I receive to
-[Enfants, Espoir Du Monde](http://www.eedm.fr/).
-EEDM is a French NGO which helps children in Bangladesh, Cameroun, Haiti, India
-and Madagascar.
-
-All its members are volunteers so its operating costs are only 1.9%. So your
-money will directly help children of these countries.
-
-As an added bonus, your donations will also tip me by lowering my taxes :smile:
-
-I will send an email with the receipt of the donation to EEDM annually to all
-donors.
-
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PYQKC7VFVXCFG)
