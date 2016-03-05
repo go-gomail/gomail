@@ -115,7 +115,7 @@ func Example_noAuth() {
 }
 
 // Send an email using the CRAM-MD5 authentication mechanism.
-func Example_CRAM_MD5() {
+func Example_cRAMMD5() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "from@example.com")
 	m.SetHeader("To", "to@example.com")
