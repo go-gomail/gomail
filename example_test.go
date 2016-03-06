@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"net/smtp"
 	"time"
 
 	"gopkg.in/gomail.v2"
@@ -20,7 +19,7 @@ func Example() {
 	m.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
 	m.Attach("/home/Alex/lolcat.jpg")
 
-	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
+	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
 
 	// Send the email to Bob, Cora and Dan.
 	if err := d.DialAndSend(m); err != nil {
@@ -33,7 +32,7 @@ func Example_daemon() {
 	ch := make(chan *gomail.Message)
 
 	go func() {
-		d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
+		d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
 
 		var s gomail.SendCloser
 		var err error
@@ -80,7 +79,7 @@ func Example_newsletter() {
 		Address string
 	}
 
-	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
+	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
 	s, err := d.Dial()
 	if err != nil {
 		panic(err)
@@ -109,24 +108,6 @@ func Example_noAuth() {
 	m.SetBody("text/plain", "Hello!")
 
 	d := gomail.Dialer{Host: "localhost", Port: 587}
-	if err := d.DialAndSend(m); err != nil {
-		panic(err)
-	}
-}
-
-// Send an email using the CRAM-MD5 authentication mechanism.
-func Example_cRAMMD5() {
-	m := gomail.NewMessage()
-	m.SetHeader("From", "from@example.com")
-	m.SetHeader("To", "to@example.com")
-	m.SetHeader("Subject", "Hello!")
-	m.SetBody("text/plain", "Hello!")
-
-	d := gomail.Dialer{
-		Host: "localhost",
-		Port: 587,
-		Auth: smtp.CRAMMD5Auth("username", "secret"),
-	}
 	if err := d.DialAndSend(m); err != nil {
 		panic(err)
 	}

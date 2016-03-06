@@ -60,7 +60,7 @@ bypass the verification of the server's certificate chain and host name by using
     )
 
     func main() {
-    	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
+    	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
     	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
         // Send emails using d.
