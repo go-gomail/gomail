@@ -115,12 +115,35 @@ func TestDialerNoAuth(t *testing.T) {
 	})
 }
 
+func TestDialerTimeout(t *testing.T) {
+	d := &Dialer{
+		Host: testHost,
+		Port: testPort,
+	}
+	testSendMailTimeout(t, d, []string{
+		"Extension STARTTLS",
+		"StartTLS",
+		"Mail " + testFrom,
+		"Extension STARTTLS",
+		"StartTLS",
+		"Mail " + testFrom,
+		"Rcpt " + testTo1,
+		"Rcpt " + testTo2,
+		"Data",
+		"Write message",
+		"Close writer",
+		"Quit",
+		"Close",
+	})
+}
+
 type mockClient struct {
-	t      *testing.T
-	i      int
-	want   []string
-	addr   string
-	config *tls.Config
+	t       *testing.T
+	i       int
+	want    []string
+	addr    string
+	config  *tls.Config
+	timeout bool
 }
 
 func (c *mockClient) Hello(localName string) error {
@@ -149,6 +172,10 @@ func (c *mockClient) Auth(a smtp.Auth) error {
 
 func (c *mockClient) Mail(from string) error {
 	c.do("Mail " + from)
+	if c.timeout {
+		c.timeout = false
+		return io.EOF
+	}
 	return nil
 }
 
@@ -204,11 +231,20 @@ func (w *mockWriter) Close() error {
 }
 
 func testSendMail(t *testing.T, d *Dialer, want []string) {
+	doTestSendMail(t, d, want, false)
+}
+
+func testSendMailTimeout(t *testing.T, d *Dialer, want []string) {
+	doTestSendMail(t, d, want, true)
+}
+
+func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) {
 	testClient := &mockClient{
-		t:      t,
-		want:   want,
-		addr:   addr(d.Host, d.Port),
-		config: d.TLSConfig,
+		t:       t,
+		want:    want,
+		addr:    addr(d.Host, d.Port),
+		config:  d.TLSConfig,
+		timeout: timeout,
 	}
 
 	netDial = func(network, address string) (net.Conn, error) {
