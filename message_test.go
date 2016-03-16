@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -150,7 +151,8 @@ func TestAlternative(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/alternative; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/alternative;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -180,7 +182,8 @@ func TestPartSetting(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/alternative; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/alternative;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; format=flowed; charset=UTF-8\r\n" +
@@ -216,7 +219,8 @@ func TestBodyWriter(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/alternative; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/alternative;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -267,7 +271,8 @@ func TestAttachment(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -298,7 +303,8 @@ func TestAttachmentsOnly(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
@@ -331,7 +337,8 @@ func TestAttachments(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -369,7 +376,8 @@ func TestEmbedded(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/related; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/related;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -410,13 +418,16 @@ func TestFullMessage(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: multipart/related; boundary=_BOUNDARY_2_\r\n" +
+			"Content-Type: multipart/related;\r\n" +
+			" boundary=_BOUNDARY_2_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_2_\r\n" +
-			"Content-Type: multipart/alternative; boundary=_BOUNDARY_3_\r\n" +
+			"Content-Type: multipart/alternative;\r\n" +
+			" boundary=_BOUNDARY_3_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_3_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -530,7 +541,7 @@ func TestEmptyHeader(t *testing.T) {
 	want := &message{
 		from: "from@example.com",
 		content: "From: from@example.com\r\n" +
-			"X-Empty: \r\n",
+			"X-Empty:\r\n",
 	}
 
 	testMessage(t, m, 0, want)
@@ -658,6 +669,32 @@ func mockCopyFile(name string) (string, FileSetting) {
 func mockCopyFileWithHeader(m *Message, name string, h map[string][]string) (string, FileSetting, FileSetting) {
 	name, f := mockCopyFile(name)
 	return name, f, SetHeader(h)
+}
+
+func TestLineLength(t *testing.T) {
+	switch runtime.Version()[:5] {
+	case "go1.2", "go1.3", "go1.4", "go1.5":
+		t.Skip("Only pass with Go 1.6+")
+	}
+
+	m := NewMessage()
+	m.SetAddressHeader("From", "from@example.com", "Señor From")
+	m.SetHeader("Subject", "{$firstname} Bienvendio a Apostólica, aquí inicia el camino de tu")
+	m.SetBody("text/plain", strings.Repeat("a", 100))
+
+	buf := new(bytes.Buffer)
+	m.WriteTo(buf)
+	n := 0
+	for _, b := range buf.Bytes() {
+		if b == '\n' {
+			n = 0
+		} else {
+			n++
+			if n == 80 {
+				t.Errorf("A line is too long:\n%s", buf.Bytes())
+			}
+		}
+	}
 }
 
 func BenchmarkFull(b *testing.B) {

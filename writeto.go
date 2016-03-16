@@ -7,6 +7,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -78,7 +79,7 @@ type messageWriter struct {
 
 func (w *messageWriter) openMultipart(mimeType string) {
 	mw := multipart.NewWriter(w)
-	contentType := "multipart/" + mimeType + "; boundary=" + mw.Boundary()
+	contentType := "multipart/" + mimeType + ";\r\n boundary=" + mw.Boundary()
 	w.writers[w.depth] = mw
 
 	if w.depth == 0 {
@@ -163,15 +164,85 @@ func (w *messageWriter) writeString(s string) {
 
 func (w *messageWriter) writeHeader(k string, v ...string) {
 	w.writeString(k)
+	if len(v) == 0 {
+		w.writeString(":\r\n")
+		return
+	}
 	w.writeString(": ")
-	if len(v) > 0 {
-		w.writeString(v[0])
-		for _, s := range v[1:] {
+
+	// Max header line length is 78 characters in RFC 5322 and 76 characters
+	// in RFC 2047. So for the sake of simplicity we use the 76 characters
+	// limit.
+	charsLeft := 76 - len(k) - len(": ")
+
+	for i, s := range v {
+		// If the line is already too long, insert a newline right away.
+		if charsLeft < 1 {
+			if i == 0 {
+				w.writeString("\r\n ")
+			} else {
+				w.writeString(",\r\n ")
+			}
+			charsLeft = 75
+		} else if i != 0 {
 			w.writeString(", ")
-			w.writeString(s)
+			charsLeft -= 2
+		}
+
+		// While the header content is too long, fold it by inserting a newline.
+		for len(s) > charsLeft {
+			s = w.writeLine(s, charsLeft)
+			charsLeft = 75
+		}
+		w.writeString(s)
+		if i := lastIndexByte(s, '\n'); i != -1 {
+			charsLeft = 75 - (len(s) - i - 1)
+		} else {
+			charsLeft -= len(s)
 		}
 	}
 	w.writeString("\r\n")
+}
+
+func (w *messageWriter) writeLine(s string, charsLeft int) string {
+	// If there is already a newline before the limit. Write the line.
+	if i := strings.IndexByte(s, '\n'); i != -1 && i < charsLeft {
+		w.writeString(s[:i+1])
+		return s[i+1:]
+	}
+
+	for i := charsLeft - 1; i >= 0; i-- {
+		if s[i] == ' ' {
+			w.writeString(s[:i])
+			w.writeString("\r\n ")
+			return s[i+1:]
+		}
+	}
+
+	// No space found so insert a newline if it was not the start of the
+	// line.
+	if charsLeft != 75 {
+		w.writeString("\r\n ")
+		return s
+	}
+
+	// We could not insert a newline cleanly so look for a space or a newline
+	// even if it is after the limit.
+	for i := 75; i < len(s); i++ {
+		if s[i] == ' ' {
+			w.writeString(s[:i])
+			w.writeString("\r\n ")
+			return s[i+1:]
+		}
+		if s[i] == '\n' {
+			w.writeString(s[:i+1])
+			return s[i+1:]
+		}
+	}
+
+	// Too bad, no space or newline in the whole string. Just write everything.
+	w.writeString(s)
+	return ""
 }
 
 func (w *messageWriter) writeHeaders(h map[string][]string) {
