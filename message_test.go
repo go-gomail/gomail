@@ -531,6 +531,18 @@ func TestBase64LineLength(t *testing.T) {
 	testMessage(t, m, 0, want)
 }
 
+func TestEmptyName(t *testing.T) {
+	m := NewMessage()
+	m.SetAddressHeader("From", "from@example.com", "")
+
+	want := &message{
+		from:    "from@example.com",
+		content: "From: from@example.com\r\n",
+	}
+
+	testMessage(t, m, 0, want)
+}
+
 func TestEmptyHeader(t *testing.T) {
 	m := NewMessage()
 	m.SetHeaders(map[string][]string{

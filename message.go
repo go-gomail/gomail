@@ -127,6 +127,10 @@ func (m *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (m *Message) FormatAddress(address, name string) string {
+	if name == "" {
+		return address
+	}
+
 	enc := m.encodeString(name)
 	if enc == name {
 		m.buf.WriteByte('"')
