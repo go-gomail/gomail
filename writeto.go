@@ -219,13 +219,6 @@ func (w *messageWriter) writeLine(s string, charsLeft int) string {
 		}
 	}
 
-	// No space found so insert a newline if it was not the start of the
-	// line.
-	if charsLeft != 75 {
-		w.writeString("\r\n ")
-		return s
-	}
-
 	// We could not insert a newline cleanly so look for a space or a newline
 	// even if it is after the limit.
 	for i := 75; i < len(s); i++ {

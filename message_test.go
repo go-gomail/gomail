@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -681,32 +680,6 @@ func mockCopyFile(name string) (string, FileSetting) {
 func mockCopyFileWithHeader(m *Message, name string, h map[string][]string) (string, FileSetting, FileSetting) {
 	name, f := mockCopyFile(name)
 	return name, f, SetHeader(h)
-}
-
-func TestLineLength(t *testing.T) {
-	switch runtime.Version()[:5] {
-	case "go1.2", "go1.3", "go1.4", "go1.5":
-		t.Skip("Only pass with Go 1.6+")
-	}
-
-	m := NewMessage()
-	m.SetAddressHeader("From", "from@example.com", "Señor From")
-	m.SetHeader("Subject", "{$firstname} Bienvendio a Apostólica, aquí inicia el camino de tu")
-	m.SetBody("text/plain", strings.Repeat("a", 100))
-
-	buf := new(bytes.Buffer)
-	m.WriteTo(buf)
-	n := 0
-	for _, b := range buf.Bytes() {
-		if b == '\n' {
-			n = 0
-		} else {
-			n++
-			if n == 80 {
-				t.Errorf("A line is too long:\n%s", buf.Bytes())
-			}
-		}
-	}
 }
 
 func BenchmarkFull(b *testing.B) {
