@@ -167,6 +167,10 @@ func ExampleMessage_Attach() {
 	m.Attach("/tmp/image.jpg")
 }
 
+func ExampleMessage_AttachAndRename() {
+	m.Attach("/tmp/image.jpg", gomail.Rename("picture.jpg"))
+}
+
 func ExampleMessage_Embed() {
 	m.Embed("/tmp/image.jpg")
 	m.SetBody("text/html", `<img src="cid:image.jpg" alt="My image" />`)

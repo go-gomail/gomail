@@ -264,6 +264,14 @@ func SetHeader(h map[string][]string) FileSetting {
 	}
 }
 
+// Rename is a file setting to set the name of the attachment if the name is
+// different than the filename on disk.
+func Rename(name string) FileSetting {
+	return func(f *file) {
+		f.Name = name
+	}
+}
+
 // SetCopyFunc is a file setting to replace the function that runs when the
 // message is sent. It should copy the content of the file to the io.Writer.
 //
