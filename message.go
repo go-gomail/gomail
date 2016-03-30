@@ -113,6 +113,13 @@ func (m *Message) encodeString(value string) string {
 	return m.hEncoder.Encode(m.charset, value)
 }
 
+// SetName a callback to set your own file name to an attachement
+func SetName(newName string) FileSetting {
+	return func(f *file) {
+		f.Name = newName
+	}
+}
+
 // SetHeaders sets the message headers.
 func (m *Message) SetHeaders(h map[string][]string) {
 	for k, v := range h {
