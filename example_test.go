@@ -151,6 +151,10 @@ func ExampleSetHeader() {
 	m.Attach("foo.jpg", gomail.SetHeader(h))
 }
 
+func ExampleRename() {
+	m.Attach("/tmp/0000146.jpg", gomail.Rename("picture.jpg"))
+}
+
 func ExampleMessage_AddAlternative() {
 	m.SetBody("text/plain", "Hello!")
 	m.AddAlternative("text/html", "<p>Hello!</p>")
