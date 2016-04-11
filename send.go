@@ -20,7 +20,7 @@ type SendCloser interface {
 	Close() error
 }
 
-// A SendFunc is a function that sends emails to the given adresses.
+// A SendFunc is a function that sends emails to the given addresses.
 //
 // The SendFunc type is an adapter to allow the use of ordinary functions as
 // email senders. If f is a function with the appropriate signature, SendFunc(f)
