@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/smtp"
 	"strings"
+	"time"
 )
 
 // A Dialer is a dialer to an SMTP server.
@@ -57,7 +58,7 @@ func NewPlainDialer(host string, port int, username, password string) *Dialer {
 // Dial dials and authenticates to an SMTP server. The returned SendCloser
 // should be closed when done using it.
 func (d *Dialer) Dial() (SendCloser, error) {
-	conn, err := netDial("tcp", addr(d.Host, d.Port))
+	conn, err := netDialTimeout("tcp", addr(d.Host, d.Port), 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -181,9 +182,9 @@ func (c *smtpSender) Close() error {
 
 // Stubbed out for tests.
 var (
-	netDial       = net.Dial
-	tlsClient     = tls.Client
-	smtpNewClient = func(conn net.Conn, host string) (smtpClient, error) {
+	netDialTimeout = net.DialTimeout
+	tlsClient      = tls.Client
+	smtpNewClient  = func(conn net.Conn, host string) (smtpClient, error) {
 		return smtp.NewClient(conn, host)
 	}
 )
