@@ -33,9 +33,9 @@ https://godoc.org/gopkg.in/gomail.v2
 
 
 ## Download
-
-    go get gopkg.in/gomail.v2
-
+```bash
+go get -u gopkg.in/gomail.v2
+```
 
 ## Examples
 
@@ -48,24 +48,23 @@ See the [examples in the documentation](https://godoc.org/gopkg.in/gomail.v2#exa
 
 If you get this error it means the certificate used by the SMTP server is not
 considered valid by the client running Gomail. As a quick workaround you can
-bypass the verification of the server's certificate chain and host name by using
-`SetTLSConfig`:
+bypass the verification of the server's certificate chain and host name by using `SetTLSConfig`:
+```go
+package main
 
-    package main
+import (
+    "crypto/tls"
 
-    import (
-    	"crypto/tls"
+    "gopkg.in/gomail.v2"
+)
 
-    	"gopkg.in/gomail.v2"
-    )
+func main() {
+    d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+    d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-    func main() {
-    	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
-    	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-        // Send emails using d.
-    }
-
+    // Send emails using d.
+}
+```
 Note, however, that this is insecure and should not be used in production.
 
 
