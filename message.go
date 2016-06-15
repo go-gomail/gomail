@@ -3,8 +3,10 @@ package gomail
 import (
 	"bytes"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -287,16 +289,28 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 	f := &file{
 		Name:   filepath.Base(name),
 		Header: make(map[string][]string),
-		CopyFunc: func(w io.Writer) error {
-			h, err := os.Open(name)
+		CopyFunc: func(w io.Writer) (err error) {
+			var r io.ReadCloser
+			isURL, err := regexp.MatchString("^https?://", name)
 			if err != nil {
 				return err
 			}
-			if _, err := io.Copy(w, h); err != nil {
-				h.Close()
+			if isURL {
+				resp, err := http.Get(name)
+				if err != nil {
+					return err
+				}
+				r = resp.Body
+			} else {
+				if r, err = os.Open(name); err != nil {
+					return err
+				}
+			}
+
+			if _, err := io.Copy(w, r); err != nil {
 				return err
 			}
-			return h.Close()
+			return r.Close()
 		},
 	}
 
