@@ -119,7 +119,7 @@ func (w *messageWriter) addFiles(files []*file, isAttachment bool) {
 			if mediaType == "" {
 				mediaType = "application/octet-stream"
 			}
-			f.setHeader("Content-Type", mediaType+`; name="`+f.Name+`"`)
+			f.setHeader("Content-Type", mediaType+`; charset=UTF-8; name="`+f.Name+`"`)
 		}
 
 		if _, ok := f.Header["Content-Transfer-Encoding"]; !ok {
