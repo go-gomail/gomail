@@ -283,8 +283,8 @@ func SetCopyFunc(f func(io.Writer) error) FileSetting {
 	}
 }
 
-func (m *Message) appendFile(list []*file, name string, settings []FileSetting) []*file {
-	f := &file{
+func (m *Message) appendOSFile(list []*file, name string, settings []FileSetting) []*file {
+	return m.appendFile(list, &file{
 		Name:   filepath.Base(name),
 		Header: make(map[string][]string),
 		CopyFunc: func(w io.Writer) error {
@@ -298,8 +298,24 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 			}
 			return h.Close()
 		},
-	}
+	}, settings)
+}
 
+func (m *Message) appendReaderFile(list []*file, name string, r io.Reader, settings []FileSetting) []*file {
+	return m.appendFile(list, &file{
+		Name:   name,
+		Header: make(map[string][]string),
+		CopyFunc: func(w io.Writer) error {
+			if _, err := io.Copy(w, r); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}, settings)
+}
+
+func (m *Message) appendFile(list []*file, f *file, settings []FileSetting) []*file {
 	for _, s := range settings {
 		s(f)
 	}
@@ -313,10 +329,20 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 
 // Attach attaches the files to the email.
 func (m *Message) Attach(filename string, settings ...FileSetting) {
-	m.attachments = m.appendFile(m.attachments, filename, settings)
+	m.attachments = m.appendOSFile(m.attachments, filename, settings)
 }
 
 // Embed embeds the images to the email.
 func (m *Message) Embed(filename string, settings ...FileSetting) {
-	m.embedded = m.appendFile(m.embedded, filename, settings)
+	m.embedded = m.appendOSFile(m.embedded, filename, settings)
+}
+
+// AttachWithReader equal to Attach using a io.Reader as content of the file.
+func (m *Message) AttachWithReader(filename string, r io.Reader, settings ...FileSetting) {
+	m.attachments = m.appendReaderFile(m.attachments, filename, r, settings)
+}
+
+// EmbedWithReader equal to Attach using a io.Reader as content of the file.
+func (m *Message) EmbedWithReader(filename string, r io.Reader, settings ...FileSetting) {
+	m.embedded = m.appendReaderFile(m.attachments, filename, r, settings)
 }
