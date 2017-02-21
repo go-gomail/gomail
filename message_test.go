@@ -237,6 +237,30 @@ func TestBodyWriter(t *testing.T) {
 	testMessage(t, m, 1, want)
 }
 
+func TestAttachmentReader(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+
+	var b bytes.Buffer
+	b.Write([]byte("Test file"))
+	m.AttachReader("file.txt", &b)
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: text/plain; charset=utf-8; name=\"file.txt\"\r\n" +
+			"Content-Disposition: attachment; filename=\"file.txt\"\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Test file")),
+	}
+
+	testMessage(t, m, 0, want)
+}
+
 func TestAttachmentOnly(t *testing.T) {
 	m := NewMessage()
 	m.SetHeader("From", "from@example.com")
@@ -394,6 +418,31 @@ func TestAttachments(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+}
+
+func TestEmbeddedReader(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+
+	var b bytes.Buffer
+	b.Write([]byte("Test file"))
+	m.EmbedReader("file.txt", &b)
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: text/plain; charset=utf-8; name=\"file.txt\"\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"Content-Disposition: inline; filename=\"file.txt\"\r\n" +
+			"Content-ID: <file.txt>\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Test file")),
+	}
+
+	testMessage(t, m, 0, want)
 }
 
 func TestEmbedded(t *testing.T) {
