@@ -138,6 +138,19 @@ func TestDialerTimeout(t *testing.T) {
 	})
 }
 
+func TestDialerReset(t *testing.T) {
+	d := NewDialer(testHost, testPort, "user", "pwd")
+	doTestSMTPReset(t, d, []string{
+		"Extension STARTTLS",
+		"StartTLS",
+		"Extension AUTH",
+		"Auth",
+		"Reset",
+		"Quit",
+		"Close",
+	})
+}
+
 type mockClient struct {
 	t       *testing.T
 	i       int
@@ -195,6 +208,11 @@ func (c *mockClient) Quit() error {
 	return nil
 }
 
+func (c *mockClient) Reset() error {
+	c.do("Reset")
+	return nil
+}
+
 func (c *mockClient) Close() error {
 	c.do("Close")
 	return nil
@@ -237,6 +255,55 @@ func testSendMail(t *testing.T, d *Dialer, want []string) {
 
 func testSendMailTimeout(t *testing.T, d *Dialer, want []string) {
 	doTestSendMail(t, d, want, true)
+}
+
+func doTestSMTPReset(t *testing.T, d *Dialer, want []string){
+	testClient := &mockClient{
+		t:       t,
+		want:    want,
+		addr:    addr(d.Host, d.Port),
+		config:  d.TLSConfig,
+		timeout: false,
+	}
+
+	netDialTimeout = func(network, address string, d time.Duration) (net.Conn, error) {
+		if network != "tcp" {
+			t.Errorf("Invalid network, got %q, want tcp", network)
+		}
+		if address != testClient.addr {
+			t.Errorf("Invalid address, got %q, want %q",
+				address, testClient.addr)
+		}
+		return testConn, nil
+	}
+
+	tlsClient = func(conn net.Conn, config *tls.Config) *tls.Conn {
+		if conn != testConn {
+			t.Errorf("Invalid conn, got %#v, want %#v", conn, testConn)
+		}
+		assertConfig(t, config, testClient.config)
+		return testTLSConn
+	}
+
+	smtpNewClient = func(conn net.Conn, host string) (smtpClient, error) {
+		if host != testHost {
+			t.Errorf("Invalid host, got %q, want %q", host, testHost)
+		}
+		return testClient, nil
+	}
+	//Start "daemon" mode
+	s, err := d.Dial()
+	if err != nil {
+		t.Error(err)
+	}
+
+	/*
+	Call the reset for testing purposes. In practice, this should be called after an error while attempting to send
+	 a message. But per RFC 5321 RSET can be called at any time.
+	 */
+	s.Reset()
+	s.Close()
+
 }
 
 func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) {
