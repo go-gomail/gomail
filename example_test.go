@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/fjace05/gomail"
+	"gopkg.in/gomail.v2"
 )
 
 func Example() {
@@ -50,11 +50,6 @@ func Example_daemon() {
 					open = true
 				}
 				if err := gomail.Send(s, m); err != nil {
-					/*
-					If a message fails to send, the SMTP channel can be reset so additional messages
-					can be attempted.
-					 */
-					s.Reset()
 					log.Print(err)
 				}
 			// Close the connection to the SMTP server if no email was sent in
