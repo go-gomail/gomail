@@ -180,6 +180,10 @@ func (c *smtpSender) Close() error {
 	return c.Quit()
 }
 
+func (c *smtpSender) Reset() error {
+	return c.smtpClient.Reset()
+}
+
 // Stubbed out for tests.
 var (
 	netDialTimeout = net.DialTimeout
@@ -196,6 +200,7 @@ type smtpClient interface {
 	Auth(smtp.Auth) error
 	Mail(string) error
 	Rcpt(string) error
+	Reset() error
 	Data() (io.WriteCloser, error)
 	Quit() error
 	Close() error

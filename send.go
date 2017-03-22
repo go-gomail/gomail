@@ -18,6 +18,7 @@ type Sender interface {
 type SendCloser interface {
 	Sender
 	Close() error
+	Reset() error
 }
 
 // A SendFunc is a function that sends emails to the given addresses.

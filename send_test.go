@@ -31,10 +31,15 @@ func (s mockSender) Send(from string, to []string, msg io.WriterTo) error {
 type mockSendCloser struct {
 	mockSender
 	close func() error
+	reset func() error
 }
 
 func (s *mockSendCloser) Close() error {
 	return s.close()
+}
+
+func (s *mockSendCloser) Reset() error {
+	return s.reset()
 }
 
 func TestSend(t *testing.T) {
@@ -42,6 +47,10 @@ func TestSend(t *testing.T) {
 		mockSender: stubSend(t, testFrom, []string{testTo1, testTo2}, testMsg),
 		close: func() error {
 			t.Error("Close() should not be called in Send()")
+			return nil
+		},
+		reset: func() error {
+			t.Error("Reset() should not be called in Send()")
 			return nil
 		},
 	}
