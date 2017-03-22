@@ -52,7 +52,6 @@ func TestDialerSSL(t *testing.T) {
 		"Data",
 		"Write message",
 		"Close writer",
-		"Reset",
 		"Quit",
 		"Close",
 	})
