@@ -3,6 +3,7 @@ package gomail
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -45,12 +46,12 @@ func (w *messageWriter) writeMessage(m *Message) {
 		w.closeMultipart()
 	}
 
-	w.addFiles(m.embedded, false)
+	w.addFiles(m.embedded, false, m.charset)
 	if m.hasRelatedPart() {
 		w.closeMultipart()
 	}
 
-	w.addFiles(m.attachments, true)
+	w.addFiles(m.attachments, true, m.charset)
 	if m.hasMixedPart() {
 		w.closeMultipart()
 	}
@@ -112,14 +113,14 @@ func (w *messageWriter) writePart(p *part, charset string) {
 	w.writeBody(p.copier, p.encoding)
 }
 
-func (w *messageWriter) addFiles(files []*file, isAttachment bool) {
+func (w *messageWriter) addFiles(files []*file, isAttachment bool, charset string) {
 	for _, f := range files {
 		if _, ok := f.Header["Content-Type"]; !ok {
 			mediaType := mime.TypeByExtension(filepath.Ext(f.Name))
 			if mediaType == "" {
 				mediaType = "application/octet-stream"
 			}
-			f.setHeader("Content-Type", mediaType+`; name="`+f.Name+`"`)
+			f.setHeader("Content-Type", fmt.Sprintf(`%s; charset=%s; name="%s"`, mediaType, charset, f.Name))
 		}
 
 		if _, ok := f.Header["Content-Transfer-Encoding"]; !ok {
