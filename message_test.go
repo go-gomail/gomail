@@ -1,6 +1,7 @@
 package gomail
 
 import (
+	"os"
 	"bytes"
 	"encoding/base64"
 	"io"
@@ -297,6 +298,9 @@ func TestRename(t *testing.T) {
 	m.SetBody("text/plain", "Test")
 	name, copy := mockCopyFile("/tmp/test.pdf")
 	rename := Rename("another.pdf")
+	os.Create("another.pdf")
+
+
 	m.Attach(name, copy, rename)
 
 	want := &message{
@@ -705,6 +709,7 @@ func getBoundaries(t *testing.T, count int, m string) []string {
 var boundaryRegExp = regexp.MustCompile("boundary=(\\w+)")
 
 func mockCopyFile(name string) (string, FileSetting) {
+	os.Create(filepath.Base(name))
 	return name, SetCopyFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte("Content of " + filepath.Base(name)))
 		return err
