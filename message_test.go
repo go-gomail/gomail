@@ -248,7 +248,7 @@ func TestAttachmentOnly(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
+			"Content-Type: application/pdf; charset=UTF-8; name=\"test.pdf\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
@@ -279,7 +279,7 @@ func TestAttachment(t *testing.T) {
 			"\r\n" +
 			"Test\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
+			"Content-Type: application/pdf; charset=UTF-8; name=\"test.pdf\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
@@ -313,7 +313,7 @@ func TestRename(t *testing.T) {
 			"\r\n" +
 			"Test\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/pdf; name=\"another.pdf\"\r\n" +
+			"Content-Type: application/pdf; charset=UTF-8; name=\"another.pdf\"\r\n" +
 			"Content-Disposition: attachment; filename=\"another.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
@@ -340,13 +340,13 @@ func TestAttachmentsOnly(t *testing.T) {
 			" boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
+			"Content-Type: application/pdf; charset=UTF-8; name=\"test.pdf\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
 			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/zip; name=\"test.zip\"\r\n" +
+			"Content-Type: application/zip; charset=UTF-8; name=\"test.zip\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.zip\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
@@ -379,13 +379,13 @@ func TestAttachments(t *testing.T) {
 			"\r\n" +
 			"Test\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
+			"Content-Type: application/pdf; charset=UTF-8; name=\"test.pdf\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
 			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/zip; name=\"test.zip\"\r\n" +
+			"Content-Type: application/zip; charset=UTF-8; name=\"test.zip\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.zip\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
@@ -418,14 +418,14 @@ func TestEmbedded(t *testing.T) {
 			"\r\n" +
 			"Test\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: image/jpeg; name=\"image1.jpg\"\r\n" +
+			"Content-Type: image/jpeg; charset=UTF-8; name=\"image1.jpg\"\r\n" +
 			"Content-Disposition: inline; filename=\"image1.jpg\"\r\n" +
 			"Content-ID: <test-content-id>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
 			base64.StdEncoding.EncodeToString([]byte("Content of image1.jpg")) + "\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: image/jpeg; name=\"image2.jpg\"\r\n" +
+			"Content-Type: image/jpeg; charset=UTF-8; name=\"image2.jpg\"\r\n" +
 			"Content-Disposition: inline; filename=\"image2.jpg\"\r\n" +
 			"Content-ID: <image2.jpg>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
@@ -475,7 +475,7 @@ func TestFullMessage(t *testing.T) {
 			"--_BOUNDARY_3_--\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_2_\r\n" +
-			"Content-Type: image/jpeg; name=\"image.jpg\"\r\n" +
+			"Content-Type: image/jpeg; charset=UTF-8; name=\"image.jpg\"\r\n" +
 			"Content-Disposition: inline; filename=\"image.jpg\"\r\n" +
 			"Content-ID: <image.jpg>\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
@@ -484,7 +484,7 @@ func TestFullMessage(t *testing.T) {
 			"--_BOUNDARY_2_--\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
+			"Content-Type: application/pdf; charset=UTF-8; name=\"test.pdf\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
