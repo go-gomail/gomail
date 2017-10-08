@@ -248,7 +248,7 @@ func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) {
 		timeout: timeout,
 	}
 
-	netDialTimeout = func(network, address string, d time.Duration) (net.Conn, error) {
+	NetDialTimeout = func(network, address string, d time.Duration) (net.Conn, error) {
 		if network != "tcp" {
 			t.Errorf("Invalid network, got %q, want tcp", network)
 		}
