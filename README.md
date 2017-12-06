@@ -35,7 +35,7 @@ https://godoc.org/github.com/go-mail/gomail
 
 ## Download
 
-    go get gopkg.in/gomail.v2
+    go get github.com/go-mail/gomail
 
 
 ## Examples
@@ -57,7 +57,7 @@ bypass the verification of the server's certificate chain and host name by using
     import (
     	"crypto/tls"
 
-    	"gopkg.in/gomail.v2"
+    	"github.com/go-mail/gomail"
     )
 
     func main() {
