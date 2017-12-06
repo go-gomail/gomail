@@ -1,6 +1,9 @@
 language: go
 
 go:
+  - 1.2x
+  - 1.3x
+  - 1.4x
   - 1.5x
   - 1.6x
   - 1.7x
@@ -13,3 +16,6 @@ branches:
   only:
   - master
   - v2
+
+notifications:
+  email: false

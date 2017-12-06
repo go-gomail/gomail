@@ -14,7 +14,7 @@ is easy to implement other methods for sending emails using a local Postfix, an
 API, etc.
 
 
-It requires Go 1.5 or newer.
+It requires Go 1.2 or newer. With Go 1.5, no external dependencies are used.
 
 
 ## Features
