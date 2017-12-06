@@ -52,20 +52,22 @@ considered valid by the client running Gomail. As a quick workaround you can
 bypass the verification of the server's certificate chain and host name by using
 `SetTLSConfig`:
 
-    package main
+```go
+package main
 
-    import (
-    	"crypto/tls"
+import (
+	"crypto/tls"
 
-    	"github.com/go-mail/gomail"
-    )
+	"github.com/go-mail/gomail"
+)
 
-    func main() {
-    	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
-    	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+func main() {
+	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-        // Send emails using d.
-    }
+	// Send emails using d.
+}
+```
 
 Note, however, that this is insecure and should not be used in production.
 
