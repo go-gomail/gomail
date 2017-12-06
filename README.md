@@ -88,7 +88,9 @@ See [CHANGELOG.md](CHANGELOG.md).
 [MIT](LICENSE)
 
 
-## Contact
+## Support & Contact
+
+[![Join the chat at https://gitter.im/gomail-community/Lobby](https://badges.gitter.im/gomail-community/Lobby.svg)](https://gitter.im/gomail-community/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 You can ask questions on the [Gomail
 thread](https://groups.google.com/d/topic/golang-nuts/jMxZHzvvEVg/discussion)
