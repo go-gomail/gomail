@@ -8,3 +8,8 @@ go:
   - 1.9x
   - tip
 
+# safelist
+branches:
+  only:
+  - master
+  - v2
