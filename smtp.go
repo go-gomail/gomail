@@ -55,6 +55,9 @@ func NewPlainDialer(host string, port int, username, password string) *Dialer {
 	return NewDialer(host, port, username, password)
 }
 
+// NetDialTimeout specifies the DialTimeout function to establish a connection
+// to the SMTP server. This can be used to override dialing in the case that a
+// proxy or other special behavior is needed.
 var NetDialTimeout = net.DialTimeout
 
 // Dial dials and authenticates to an SMTP server. The returned SendCloser
