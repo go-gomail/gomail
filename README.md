@@ -36,7 +36,7 @@ https://godoc.org/github.com/go-mail/mail
 
 ## Examples
 
-See the [examples in the documentation](https://godoc.org/github.com/go-mail/gomail#example-package).
+See the [examples in the documentation](https://godoc.org/github.com/go-mail/mail#example-package).
 
 
 ## FAQ
@@ -58,7 +58,7 @@ import (
 )
 
 func main() {
-	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+	d := mail.NewDialer("smtp.example.com", 587, "user", "123456")
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	// Send emails using d.
