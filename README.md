@@ -1,8 +1,5 @@
 # Gomail
-[![Build Status](https://travis-ci.org/go-mail/gomail.svg?branch=master)](https://travis-ci.org/go-mail/gomail) [![Code Coverage](http://gocover.io/_badge/github.com/go-mail/gomail)](http://gocover.io/github.com/go-mail/gomail) [![Documentation](https://godoc.org/github.com/go-mail/gomail?status.svg)](https://godoc.org/github.com/go-mail/gomail)
-
-**IMPORTANT** - This is a fork of [go-gomail/gomail](https://github.com/go-gomail/gomail). See this [issue#104](https://github.com/go-gomail/gomail/issues/104)
-
+[![Build Status](https://travis-ci.org/go-mail/mail.svg?branch=master)](https://travis-ci.org/go-mail/mail) [![Code Coverage](http://gocover.io/_badge/github.com/go-mail/mail)](http://gocover.io/github.com/go-mail/mail) [![Documentation](https://godoc.org/github.com/go-mail/mail?status.svg)](https://godoc.org/github.com/go-mail/mail)
 
 ## Introduction
 
@@ -12,7 +9,6 @@ documented.
 Gomail can only send emails using an SMTP server. But the API is flexible and it
 is easy to implement other methods for sending emails using a local Postfix, an
 API, etc.
-
 
 It requires Go 1.2 or newer. With Go 1.5, no external dependencies are used.
 
@@ -30,12 +26,12 @@ Gomail supports:
 
 ## Documentation
 
-https://godoc.org/github.com/go-mail/gomail
+https://godoc.org/github.com/go-mail/mail
 
 
 ## Download
 
-    go get github.com/go-mail/gomail
+    go get gopkg.in/mail.v2
 
 
 ## Examples
