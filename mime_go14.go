@@ -2,6 +2,8 @@
 
 package mail
 
+import "gopkg.in/alexcesaro/quotedprintable.v3"
+
 var newQPWriter = quotedprintable.NewWriter
 
 type mimeEncoder struct {
