@@ -2,6 +2,8 @@
 
 package gomail
 
+// NOTE: this file is only used for 1.5+
+
 import (
 	"mime"
 	"mime/quotedprintable"

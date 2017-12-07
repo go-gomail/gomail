@@ -151,8 +151,10 @@ func addr(host string, port int) string {
 	return fmt.Sprintf("%s:%d", host, port)
 }
 
-// DialAndSend opens a connection to the SMTP server, sends the given emails and
-// closes the connection.
+// DialAndSend()
+// - opens a connection to the SMTP server
+// - sends the given emails
+// - finally closes the connection.
 func (d *Dialer) DialAndSend(m ...*Message) error {
 	s, err := d.Dial()
 	if err != nil {

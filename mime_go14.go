@@ -2,7 +2,11 @@
 
 package gomail
 
-import "gopkg.in/alexcesaro/quotedprintable.v3"
+import (
+	"gopkg.in/alexcesaro/quotedprintable.v3"
+)
+
+// NOTE: this file is only used for < 1.5 ie ie 1.4--
 
 var newQPWriter = quotedprintable.NewWriter
 
