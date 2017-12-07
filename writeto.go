@@ -1,4 +1,4 @@
-package gomail
+package mail
 
 import (
 	"encoding/base64"

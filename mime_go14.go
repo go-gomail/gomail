@@ -1,8 +1,6 @@
 // +build !go1.5
 
-package gomail
-
-import "gopkg.in/alexcesaro/quotedprintable.v3"
+package mail
 
 var newQPWriter = quotedprintable.NewWriter
 
