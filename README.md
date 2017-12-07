@@ -54,7 +54,7 @@ package main
 import (
 	"crypto/tls"
 
-	"github.com/go-mail/gomail"
+	"gopkg.in/mail.v2"
 )
 
 func main() {
