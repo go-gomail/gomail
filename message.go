@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Message represents an email.
+// Message represents an email, and the package to send to someone
 type Message struct {
 	header      header
 	parts       []*part
@@ -28,8 +28,8 @@ type part struct {
 	encoding    Encoding
 }
 
-// NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
-// by default.
+// NewMessage creates an empty/blan email message in code.
+// It uses UTF-8 and quoted-printable encoding by default.
 func NewMessage(settings ...MessageSetting) *Message {
 	m := &Message{
 		header:   make(header),
@@ -48,7 +48,7 @@ func NewMessage(settings ...MessageSetting) *Message {
 	return m
 }
 
-// Reset resets the message so it can be reused. The message keeps its previous
+// Reset() resets the message so it can be reused. The message keeps its previous
 // settings so it is in the same state that after a call to NewMessage.
 func (m *Message) Reset() {
 	for k := range m.header {
@@ -76,22 +76,24 @@ func SetCharset(charset string) MessageSetting {
 	}
 }
 
-// SetEncoding is a message setting to set the encoding of the email.
+// SetEncoding is sets the encoding of the email.
 func SetEncoding(enc Encoding) MessageSetting {
 	return func(m *Message) {
 		m.encoding = enc
 	}
 }
 
-// Encoding represents a MIME encoding scheme like quoted-printable or base64.
+// Encoding is the MIME encoding scheme, such as quoted-printable or base64.
 type Encoding string
 
 const (
 	// QuotedPrintable represents the quoted-printable encoding as defined in
 	// RFC 2045.
 	QuotedPrintable Encoding = "quoted-printable"
+
 	// Base64 represents the base64 encoding as defined in RFC 2045.
 	Base64 Encoding = "base64"
+
 	// Unencoded can be used to avoid encoding the body of an email. The headers
 	// will still be encoded using quoted-printable encoding.
 	Unencoded Encoding = "8bit"
@@ -205,8 +207,9 @@ func newCopier(s string) func(io.Writer) error {
 	}
 }
 
-// AddAlternativeWriter adds an alternative part to the message. It can be
-// useful with the text/template or html/template packages.
+// AddAlternativeWriter- adds an alternative part to the message
+//
+// It can be  useful with the text/template or html/template packages.
 func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error, settings ...PartSetting) {
 	m.parts = append(m.parts, m.newPart(contentType, f, settings))
 }
@@ -225,13 +228,18 @@ func (m *Message) newPart(contentType string, f func(io.Writer) error, settings 
 	return p
 }
 
-// A PartSetting can be used as an argument in Message.SetBody,
-// Message.AddAlternative or Message.AddAlternativeWriter to configure the part
-// added to a message.
+// A PartSetting is used as an argument in
+//
+//  - Message.SetBody,
+//  - Message.AddAlternative
+//  - Message.AddAlternativeWriter
+//
+// to configure the part added to a message.
 type PartSetting func(*part)
 
-// SetPartEncoding sets the encoding of the part added to the message. By
-// default, parts use the same encoding than the message.
+// SetPartEncoding sets the encoding of the part added to the message.
+//
+// By default, parts use the same encoding than the message.
 func SetPartEncoding(e Encoding) PartSetting {
 	return PartSetting(func(p *part) {
 		p.encoding = e
@@ -248,7 +256,7 @@ func (f *file) setHeader(field, value string) {
 	f.Header[field] = []string{value}
 }
 
-// A FileSetting can be used as an argument in Message.Attach or Message.Embed.
+// A FileSetting is used as an argument in Message.Attach and Message.Embed.
 type FileSetting func(*file)
 
 // SetHeader is a file setting to set the MIME header of the message part that
@@ -275,8 +283,8 @@ func Rename(name string) FileSetting {
 // SetCopyFunc is a file setting to replace the function that runs when the
 // message is sent. It should copy the content of the file to the io.Writer.
 //
-// The default copy function opens the file with the given filename, and copy
-// its content to the io.Writer.
+// The default copy function opens the file with the given filename,
+// // then it copies its content to the io.Writer.
 func SetCopyFunc(f func(io.Writer) error) FileSetting {
 	return func(fi *file) {
 		fi.CopyFunc = f
@@ -311,12 +319,12 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 	return append(list, f)
 }
 
-// Attach attaches the files to the email.
+// Attach - attaches the file to the email
 func (m *Message) Attach(filename string, settings ...FileSetting) {
 	m.attachments = m.appendFile(m.attachments, filename, settings)
 }
 
-// Embed embeds the images to the email.
+// Embed - embeds the images to the email
 func (m *Message) Embed(filename string, settings ...FileSetting) {
 	m.embedded = m.appendFile(m.embedded, filename, settings)
 }

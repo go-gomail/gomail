@@ -7,9 +7,7 @@ import (
 	"net/mail"
 )
 
-// Sender is the interface that wraps the Send method.
-//
-// Send sends an email to the given addresses.
+// Sender is an interface that wraps the Send() method
 type Sender interface {
 	Send(from string, to []string, msg io.WriterTo) error
 }
@@ -20,7 +18,7 @@ type SendCloser interface {
 	Close() error
 }
 
-// A SendFunc is a function that sends emails to the given addresses.
+// A `SendFunc` is a function that sends emails to the given addresses.
 //
 // The SendFunc type is an adapter to allow the use of ordinary functions as
 // email senders. If f is a function with the appropriate signature, SendFunc(f)

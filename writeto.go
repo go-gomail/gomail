@@ -303,4 +303,5 @@ func (w *base64LineWriter) Write(p []byte) (int, error) {
 }
 
 // Stubbed out for testing.
+// TODO: what is this
 var now = time.Now

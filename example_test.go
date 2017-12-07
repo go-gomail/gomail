@@ -7,7 +7,9 @@ import (
 	"log"
 	"time"
 
-	"gopkg.in/gomail.v2"
+	// Next import here seek =  ivy@github
+	//"gopkg.in/gomail.v2" = we forked said pedro
+	"github.com/go-mail/gomail"
 )
 
 func Example() {
