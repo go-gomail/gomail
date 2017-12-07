@@ -10,32 +10,42 @@ import (
 	"time"
 )
 
-// A Dialer is a dialer to an SMTP server.
+// The Dialer is a connection to an SMTP server.
 type Dialer struct {
-	// Host represents the host of the SMTP server.
+
+	// Host of the SMTP server.
 	Host string
-	// Port represents the port of the SMTP server.
+
+	// Port of the SMTP server.
 	Port int
-	// Username is the username to use to authenticate to the SMTP server.
+
+	// Username to authenticate at the SMTP server.
 	Username string
-	// Password is the password to use to authenticate to the SMTP server.
+
+	// Password to use for authenticated to the SMTP server.
 	Password string
+
 	// Auth represents the authentication mechanism used to authenticate to the
 	// SMTP server.
 	Auth smtp.Auth
+
 	// SSL defines whether an SSL connection is used. It should be false in
 	// most cases since the authentication mechanism should use the STARTTLS
 	// extension instead.
 	SSL bool
-	// TSLConfig represents the TLS configuration used for the TLS (when the
-	// STARTTLS extension is used) or SSL connection.
+
+	// TSLConfig represents configuration used for the TLS
+	// eg: when STARTTLS extension is used or SSL connection.
 	TLSConfig *tls.Config
+
 	// LocalName is the hostname sent to the SMTP server with the HELO command.
 	// By default, "localhost" is sent.
 	LocalName string
+
 	// Timeout to use for read/write operations. Defaults to 10 seconds, can
 	// be set to 0 to disable timeouts.
 	Timeout time.Duration
+
 	// Whether we should retry mailing if the connection returned an error,
 	// defaults to true.
 	RetryFailure bool
