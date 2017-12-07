@@ -28,7 +28,8 @@ type part struct {
 	encoding    Encoding
 }
 
-// NewMessage creates a blank email message in code. It uses UTF-8 and quoted-printable encoding by default.
+// NewMessage creates an empty/blan email message in code.
+// It uses UTF-8 and quoted-printable encoding by default.
 func NewMessage(settings ...MessageSetting) *Message {
 	m := &Message{
 		header:   make(header),
@@ -47,7 +48,7 @@ func NewMessage(settings ...MessageSetting) *Message {
 	return m
 }
 
-// Reset resets the message so it can be reused. The message keeps its previous
+// Reset() resets the message so it can be reused. The message keeps its previous
 // settings so it is in the same state that after a call to NewMessage.
 func (m *Message) Reset() {
 	for k := range m.header {
@@ -75,22 +76,24 @@ func SetCharset(charset string) MessageSetting {
 	}
 }
 
-// SetEncoding is a message setting to set the encoding of the email.
+// SetEncoding is sets the encoding of the email.
 func SetEncoding(enc Encoding) MessageSetting {
 	return func(m *Message) {
 		m.encoding = enc
 	}
 }
 
-// Encoding represents a MIME encoding scheme like quoted-printable or base64.
+// Encoding is the MIME encoding scheme, such as quoted-printable or base64.
 type Encoding string
 
 const (
 	// QuotedPrintable represents the quoted-printable encoding as defined in
 	// RFC 2045.
 	QuotedPrintable Encoding = "quoted-printable"
+
 	// Base64 represents the base64 encoding as defined in RFC 2045.
 	Base64 Encoding = "base64"
+
 	// Unencoded can be used to avoid encoding the body of an email. The headers
 	// will still be encoded using quoted-printable encoding.
 	Unencoded Encoding = "8bit"
