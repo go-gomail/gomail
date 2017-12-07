@@ -51,8 +51,7 @@ type Dialer struct {
 	RetryFailure bool
 }
 
-// NewDialer returns a new SMTP Dialer. The given parameters are used to connect
-// to the SMTP server.
+// NewDialer returns an SMTP connection
 func NewDialer(host string, port int, username, password string) *Dialer {
 	return &Dialer{
 		Host:         host,

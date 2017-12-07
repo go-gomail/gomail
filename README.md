@@ -6,15 +6,16 @@
 
 ## Introduction
 
-Gomail is a simple and efficient package to send emails. It is well tested and
+**gomail** is a simple and efficient package to send emails in golang. It is well tested and
 documented.
 
-Gomail can only send emails using an SMTP server. But the API is flexible and it
-is easy to implement other methods for sending emails using a local Postfix, an
-API, etc.
+**gomail** can not only send emails using an SMTP server, but the API is flexible and it
+is easy to implement other methods for sending emails using a local Postfix, an API, etc.
 
 
-It requires Go 1.2 or newer. With Go 1.5, no external dependencies are used.
+### requires
+
+- Go 1.2 or newer. With Go 1.5, no external dependencies are used.
 
 
 ## Features
@@ -34,9 +35,9 @@ https://godoc.org/github.com/go-mail/gomail
 
 
 ## Download
-
-    go get github.com/go-mail/gomail
-
+```bash
+go get github.com/go-mail/gomail
+```
 
 ## Examples
 

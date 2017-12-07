@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Message represents an email.
+// Message represents an email, and the package to send to someone
 type Message struct {
 	header      header
 	parts       []*part
@@ -28,8 +28,7 @@ type part struct {
 	encoding    Encoding
 }
 
-// NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
-// by default.
+// NewMessage creates a blank email message in code. It uses UTF-8 and quoted-printable encoding by default.
 func NewMessage(settings ...MessageSetting) *Message {
 	m := &Message{
 		header:   make(header),
