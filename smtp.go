@@ -36,7 +36,8 @@ type Dialer struct {
 	// Timeout to use for read/write operations. Defaults to 10 seconds, can
 	// be set to 0 to disable timeouts.
 	Timeout time.Duration
-	// Whether we should retry mailing if the connection returned an error.
+	// Whether we should retry mailing if the connection returned an error,
+	// defaults to true.
 	RetryFailure bool
 }
 
