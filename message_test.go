@@ -257,6 +257,9 @@ func TestAttachmentOnly(t *testing.T) {
 	}
 
 	testMessage(t, m, 0, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
 }
 
 func TestAttachment(t *testing.T) {
@@ -289,6 +292,9 @@ func TestAttachment(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
 }
 
 func TestRename(t *testing.T) {
@@ -326,6 +332,9 @@ func TestRename(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
 }
 
 func TestAttachmentsOnly(t *testing.T) {
@@ -359,6 +368,12 @@ func TestAttachmentsOnly(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("/tmp/test.zip"); err != nil {
+			panic(err)
+	}
 }
 
 func TestAttachments(t *testing.T) {
@@ -398,6 +413,12 @@ func TestAttachments(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("/tmp/test.zip"); err != nil {
+		panic(err)
+	}
 }
 
 func TestEmbedded(t *testing.T) {
@@ -439,6 +460,12 @@ func TestEmbedded(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("image1.jpg"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("image2.jpg"); err != nil {
+		panic(err)
+	}
 }
 
 func TestFullMessage(t *testing.T) {
@@ -497,6 +524,14 @@ func TestFullMessage(t *testing.T) {
 	}
 
 	testMessage(t, m, 3, want)
+
+	if err := teardownFile("test.pdf"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("image.jpg"); err != nil {
+		panic(err)
+	}
+		
 
 	want = &message{
 		from: "from@example.com",
@@ -721,6 +756,10 @@ func mockCopyFileWithHeader(m *Message, name string, h map[string][]string) (str
 	return name, f, SetHeader(h)
 }
 
+func teardownFile(name string) err {
+	return os.Remove(filepath.Base(name))
+}
+
 func BenchmarkFull(b *testing.B) {
 	discardFunc := SendFunc(func(from string, to []string, m io.WriterTo) error {
 		_, err := m.WriteTo(ioutil.Discard)
@@ -746,5 +785,11 @@ func BenchmarkFull(b *testing.B) {
 			panic(err)
 		}
 		m.Reset()
+		if err := teardownFile("benchmark.txt"); err != nil {
+			panic(err)
+		}
+		if err := teardownFile("benchmark.jpg"); err != nil {
+			panic(err)
+		}
 	}
 }
