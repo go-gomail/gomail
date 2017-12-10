@@ -304,7 +304,6 @@ func TestRename(t *testing.T) {
 	m.SetBody("text/plain", "Test")
 	name, copy := mockCopyFile("/tmp/test.pdf")
 	rename := Rename("another.pdf")
-	os.Create("another.pdf")
 
 
 	m.Attach(name, copy, rename)
