@@ -50,6 +50,47 @@ func TestSend(t *testing.T) {
 	}
 }
 
+func TestSendValidatesEmbeds(t *testing.T) {
+	s := &mockSendCloser{
+		mockSender: stubSend(t, testFrom, []string{testTo1, testTo2}, testMsg),
+		close: func() error {
+			t.Error("Close() should not be called in Send()")
+			return nil
+		},
+	}
+
+	m := getTestMessage()
+	m.Embed("this-file-does-not-exist")
+
+	err := Send(s, m)
+	if err == nil || !strings.HasSuffix(err.Error(),
+		"no such file or directory") {
+		t.Errorf("Send(): expected stat error but got %v", err)
+	}
+}
+
+
+func TestSendValidatesAttachments(t *testing.T) {
+	s := &mockSendCloser{
+		mockSender: stubSend(t, testFrom, []string{testTo1, testTo2}, testMsg),
+		close: func() error {
+			t.Error("Close() should not be called in Send()")
+			return nil
+		},
+	}
+
+	m := getTestMessage()
+	m.Attach("this-file-does-not-exist")
+
+	err := Send(s, m)
+	if err == nil || !strings.HasSuffix(err.Error(),
+		"no such file or directory") {
+		t.Errorf("Send(): expected stat error but got %v", err)
+	}
+}
+
+
+
 func getTestMessage() *Message {
 	m := NewMessage()
 	m.SetHeader("From", testFrom)
