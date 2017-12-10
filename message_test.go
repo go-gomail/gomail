@@ -1,6 +1,7 @@
 package gomail
 
 import (
+	"os"
 	"bytes"
 	"encoding/base64"
 	"io"
@@ -256,6 +257,9 @@ func TestAttachmentOnly(t *testing.T) {
 	}
 
 	testMessage(t, m, 0, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
 }
 
 func TestAttachment(t *testing.T) {
@@ -288,6 +292,9 @@ func TestAttachment(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
 }
 
 func TestRename(t *testing.T) {
@@ -297,6 +304,8 @@ func TestRename(t *testing.T) {
 	m.SetBody("text/plain", "Test")
 	name, copy := mockCopyFile("/tmp/test.pdf")
 	rename := Rename("another.pdf")
+
+
 	m.Attach(name, copy, rename)
 
 	want := &message{
@@ -322,6 +331,9 @@ func TestRename(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
 }
 
 func TestAttachmentsOnly(t *testing.T) {
@@ -355,6 +367,12 @@ func TestAttachmentsOnly(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("/tmp/test.zip"); err != nil {
+			panic(err)
+	}
 }
 
 func TestAttachments(t *testing.T) {
@@ -394,6 +412,12 @@ func TestAttachments(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("/tmp/test.pdf"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("/tmp/test.zip"); err != nil {
+		panic(err)
+	}
 }
 
 func TestEmbedded(t *testing.T) {
@@ -435,6 +459,12 @@ func TestEmbedded(t *testing.T) {
 	}
 
 	testMessage(t, m, 1, want)
+	if err := teardownFile("image1.jpg"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("image2.jpg"); err != nil {
+		panic(err)
+	}
 }
 
 func TestFullMessage(t *testing.T) {
@@ -493,6 +523,14 @@ func TestFullMessage(t *testing.T) {
 	}
 
 	testMessage(t, m, 3, want)
+
+	if err := teardownFile("test.pdf"); err != nil {
+		panic(err)
+	}
+	if err := teardownFile("image.jpg"); err != nil {
+		panic(err)
+	}
+		
 
 	want = &message{
 		from: "from@example.com",
@@ -705,6 +743,7 @@ func getBoundaries(t *testing.T, count int, m string) []string {
 var boundaryRegExp = regexp.MustCompile("boundary=(\\w+)")
 
 func mockCopyFile(name string) (string, FileSetting) {
+	os.Create(filepath.Base(name))
 	return name, SetCopyFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte("Content of " + filepath.Base(name)))
 		return err
@@ -714,6 +753,10 @@ func mockCopyFile(name string) (string, FileSetting) {
 func mockCopyFileWithHeader(m *Message, name string, h map[string][]string) (string, FileSetting, FileSetting) {
 	name, f := mockCopyFile(name)
 	return name, f, SetHeader(h)
+}
+
+func teardownFile(name string) error {
+	return os.Remove(filepath.Base(name))
 }
 
 func BenchmarkFull(b *testing.B) {
@@ -741,5 +784,11 @@ func BenchmarkFull(b *testing.B) {
 			panic(err)
 		}
 		m.Reset()
+		if err := teardownFile("benchmark.txt"); err != nil {
+			panic(err)
+		}
+		if err := teardownFile("benchmark.jpg"); err != nil {
+			panic(err)
+		}
 	}
 }
