@@ -5,6 +5,7 @@ import (
 	"io"
 	"reflect"
 	"testing"
+	"strings"
 )
 
 const (
