@@ -755,7 +755,7 @@ func mockCopyFileWithHeader(m *Message, name string, h map[string][]string) (str
 	return name, f, SetHeader(h)
 }
 
-func teardownFile(name string) err {
+func teardownFile(name string) error {
 	return os.Remove(filepath.Base(name))
 }
 
