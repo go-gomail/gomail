@@ -104,12 +104,12 @@ func (m *Message) getRecipients() ([]string, error) {
 
 func (m *Message) checkEmbedsAndAttachments() error {
 	for _, file := range m.embedded {
-		if _, err := os.Stat(file.Name); err != nil {
+		if _, err := os.Stat(file.originalName); err != nil {
 			return err
 		}
 	}
 	for _, file := range m.attachments {
-		if _, err := os.Stat(file.Name); err != nil {
+		if _, err := os.Stat(file.originalName); err != nil {
 			return err
 		}
 	}

@@ -240,6 +240,7 @@ func SetPartEncoding(e Encoding) PartSetting {
 
 type file struct {
 	Name     string
+	originalName string
 	Header   map[string][]string
 	CopyFunc func(w io.Writer) error
 }
@@ -285,6 +286,7 @@ func SetCopyFunc(f func(io.Writer) error) FileSetting {
 
 func (m *Message) appendFile(list []*file, name string, settings []FileSetting) []*file {
 	f := &file{
+		originalName: name,
 		Name:   filepath.Base(name),
 		Header: make(map[string][]string),
 		CopyFunc: func(w io.Writer) error {
