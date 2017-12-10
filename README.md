@@ -1,22 +1,5 @@
 # Gomail
-[![Build Status](https://travis-ci.org/go-mail/mail.svg?branch=master)](https://travis-ci.org/go-mail/mail) [![Code Coverage](http://gocover.io/_badge/github.com/go-mail/mail)](http://gocover.io/github.com/go-mail/mail) [![Documentation](https://godoc.org/github.com/go-mail/mail?status.svg)](https://godoc.org/github.com/go-mail/mail)
-
-This is an actively maintained fork of [Gomail][1] and includes fixes and
-improvements for a number of outstanding issues. The current progress is
-as follows:
-
- - [x] Timeouts and retries can be specified outside of the 10 second default.
- - [x] Proxying is supported through specifying a custom [NetDialTimeout][2].
- - [ ] Filenames are properly encoded for non-ASCII characters.
- - [ ] Email addresses are properly encoded for non-ASCII characters.
- - [ ] Embedded files and attachments are tested for their existence.
- - [ ] An `io.Reader` can be supplied when embedding and attaching files.
-
-See [Transitioning Existing Codebases][3] for more information on switching.
-
-[1]: https://github.com/go-gomail/gomail
-[2]: https://godoc.org/gopkg.in/mail.v2#NetDialTimeout
-[3]: #transitioning-existing-codebases
+[![Build Status](https://travis-ci.org/go-gomail/gomail.svg?branch=v2)](https://travis-ci.org/go-gomail/gomail) [![Code Coverage](http://gocover.io/_badge/gopkg.in/gomail.v2)](http://gocover.io/gopkg.in/gomail.v2) [![Documentation](https://godoc.org/gopkg.in/gomail.v2?status.svg)](https://godoc.org/gopkg.in/gomail.v2)
 
 ## Introduction
 
@@ -26,6 +9,9 @@ documented.
 Gomail can only send emails using an SMTP server. But the API is flexible and it
 is easy to implement other methods for sending emails using a local Postfix, an
 API, etc.
+
+It is versioned using [gopkg.in](https://gopkg.in) so I promise
+there will never be backward incompatible changes within each version.
 
 It requires Go 1.2 or newer. With Go 1.5, no external dependencies are used.
 
@@ -43,17 +29,17 @@ Gomail supports:
 
 ## Documentation
 
-https://godoc.org/github.com/go-mail/mail
+https://godoc.org/gopkg.in/gomail.v2
 
 
 ## Download
 
-    go get gopkg.in/mail.v2
+    go get gopkg.in/gomail.v2
 
 
 ## Examples
 
-See the [examples in the documentation](https://godoc.org/github.com/go-mail/mail#example-package).
+See the [examples in the documentation](https://godoc.org/gopkg.in/gomail.v2#example-package).
 
 
 ## FAQ
@@ -65,33 +51,23 @@ considered valid by the client running Gomail. As a quick workaround you can
 bypass the verification of the server's certificate chain and host name by using
 `SetTLSConfig`:
 
-```go
-package main
+    package main
 
-import (
-	"crypto/tls"
+    import (
+    	"crypto/tls"
 
-	"gopkg.in/mail.v2"
-)
+    	"gopkg.in/gomail.v2"
+    )
 
-func main() {
-	d := mail.NewDialer("smtp.example.com", 587, "user", "123456")
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+    func main() {
+    	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+    	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-	// Send emails using d.
-}
-```
+        // Send emails using d.
+    }
 
 Note, however, that this is insecure and should not be used in production.
 
-### Transitioning Existing Codebases
-
-If you're already using the original Gomail, switching is as easy as updating
-the import line to:
-
-```
-import gomail "gopkg.in/mail.v2"
-```
 
 ## Contribute
 
@@ -109,7 +85,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 [MIT](LICENSE)
 
 
-## Support & Contact
+## Contact
 
 You can ask questions on the [Gomail
 thread](https://groups.google.com/d/topic/golang-nuts/jMxZHzvvEVg/discussion)

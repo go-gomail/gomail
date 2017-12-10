@@ -1,4 +1,4 @@
-package mail
+package gomail
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ const (
 
 var (
 	testConn    = &net.TCPConn{}
-	testTLSConn = tls.Client(testConn, &tls.Config{InsecureSkipVerify: true})
+	testTLSConn = &tls.Conn{}
 	testConfig  = &tls.Config{InsecureSkipVerify: true}
 	testAuth    = smtp.PlainAuth("", testUser, testPwd, testHost)
 )
@@ -118,9 +118,8 @@ func TestDialerNoAuth(t *testing.T) {
 
 func TestDialerTimeout(t *testing.T) {
 	d := &Dialer{
-		Host:         testHost,
-		Port:         testPort,
-		RetryFailure: true,
+		Host: testHost,
+		Port: testPort,
 	}
 	testSendMailTimeout(t, d, []string{
 		"Extension STARTTLS",
@@ -137,25 +136,6 @@ func TestDialerTimeout(t *testing.T) {
 		"Quit",
 		"Close",
 	})
-}
-
-func TestDialerTimeoutNoRetry(t *testing.T) {
-	d := &Dialer{
-		Host:         testHost,
-		Port:         testPort,
-		RetryFailure: false,
-	}
-
-	err := doTestSendMail(t, d, []string{
-		"Extension STARTTLS",
-		"StartTLS",
-		"Mail " + testFrom,
-		"Quit",
-	}, true)
-
-	if err.Error() != "gomail: could not send email 1: EOF" {
-		t.Error("expected to have got EOF, but got:", err)
-	}
 }
 
 type mockClient struct {
@@ -252,18 +232,14 @@ func (w *mockWriter) Close() error {
 }
 
 func testSendMail(t *testing.T, d *Dialer, want []string) {
-	if err := doTestSendMail(t, d, want, false); err != nil {
-		t.Error(err)
-	}
+	doTestSendMail(t, d, want, false)
 }
 
 func testSendMailTimeout(t *testing.T, d *Dialer, want []string) {
-	if err := doTestSendMail(t, d, want, true); err != nil {
-		t.Error(err)
-	}
+	doTestSendMail(t, d, want, true)
 }
 
-func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) error {
+func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) {
 	testClient := &mockClient{
 		t:       t,
 		want:    want,
@@ -272,7 +248,7 @@ func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) error 
 		timeout: timeout,
 	}
 
-	NetDialTimeout = func(network, address string, d time.Duration) (net.Conn, error) {
+	netDialTimeout = func(network, address string, d time.Duration) (net.Conn, error) {
 		if network != "tcp" {
 			t.Errorf("Invalid network, got %q, want tcp", network)
 		}
@@ -298,7 +274,9 @@ func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) error 
 		return testClient, nil
 	}
 
-	return d.DialAndSend(getTestMessage())
+	if err := d.DialAndSend(getTestMessage()); err != nil {
+		t.Error(err)
+	}
 }
 
 func assertConfig(t *testing.T, got, want *tls.Config) {

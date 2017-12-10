@@ -1,6 +1,6 @@
 // +build go1.5
 
-package mail
+package gomail
 
 import (
 	"mime"

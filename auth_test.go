@@ -1,4 +1,4 @@
-package mail
+package gomail
 
 import (
 	"net/smtp"
