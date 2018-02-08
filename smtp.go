@@ -78,7 +78,7 @@ func (d *Dialer) Dial() (SendCloser, error) {
 		}
 	}
 
-	if !d.SSL {
+	if d.SSL {
 		if ok, _ := c.Extension("STARTTLS"); ok {
 			if err := c.StartTLS(d.tlsConfig()); err != nil {
 				c.Close()
