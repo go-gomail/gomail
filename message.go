@@ -18,6 +18,7 @@ type Message struct {
 	encoding    Encoding
 	hEncoder    mimeEncoder
 	buf         bytes.Buffer
+	boundary    string
 }
 
 type header map[string][]string
@@ -69,6 +70,13 @@ func (m *Message) applySettings(settings []MessageSetting) {
 // email.
 type MessageSetting func(m *Message)
 
+// SetBoundary is a message setting to set mime separator string
+func SetBoundary(boundary string) MessageSetting {
+	return func(m *Message) {
+		m.boundary = boundary
+	}
+}
+
 // SetCharset is a message setting to set the charset of the email.
 func SetCharset(charset string) MessageSetting {
 	return func(m *Message) {
@@ -96,6 +104,11 @@ const (
 	// will still be encoded using quoted-printable encoding.
 	Unencoded Encoding = "8bit"
 )
+
+// SetBoundary allows to set custom boundary for multypart message generated
+func (m *Message) SetBoundary(boundary string) {
+	m.boundary = boundary
+}
 
 // SetHeader sets a value to the given header field.
 func (m *Message) SetHeader(field string, value ...string) {
