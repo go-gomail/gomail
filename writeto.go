@@ -79,9 +79,7 @@ type messageWriter struct {
 
 func (w *messageWriter) openMultipart(mimeType, boundary string) {
 	mw := multipart.NewWriter(w)
-	if boundary == "" {
-		boundary = mw.Boundary()
-	} else {
+	if boundary != "" {
 		mw.SetBoundary(boundary)
 	}
 	contentType := "multipart/" + mimeType + ";\r\n boundary=" + mw.Boundary()
