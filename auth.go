@@ -1,10 +1,10 @@
 package gomail
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"net/smtp"
+	"strings"
 )
 
 // loginAuth is an smtp.Auth that implements the LOGIN authentication mechanism.
@@ -38,12 +38,17 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 		return nil, nil
 	}
 
+	cmd := string(fromServer)
+	cmd = strings.TrimSpace(cmd)
+	cmd = strings.TrimSuffix(cmd, ":")
+	cmd = strings.ToLower(cmd)
+
 	switch {
-	case bytes.Equal(fromServer, []byte("Username:")):
+	case strings.EqualFold(cmd,"username"):
 		return []byte(a.username), nil
-	case bytes.Equal(fromServer, []byte("Password:")):
+	case strings.EqualFold(cmd,"password"):
 		return []byte(a.password), nil
 	default:
-		return nil, fmt.Errorf("gomail: unexpected server challenge: %s", fromServer)
+		return nil, fmt.Errorf("gomail: unexpected server challenge: %s", cmd)
 	}
 }
