@@ -91,8 +91,7 @@ func (d *Dialer) Dial() (SendCloser, error) {
 		if ok, auths := c.Extension("AUTH"); ok {
 			if strings.Contains(auths, "CRAM-MD5") {
 				d.Auth = smtp.CRAMMD5Auth(d.Username, d.Password)
-			} else if strings.Contains(auths, "LOGIN") &&
-				!strings.Contains(auths, "PLAIN") {
+			} else if strings.Contains(auths, "LOGIN") {
 				d.Auth = &loginAuth{
 					username: d.Username,
 					password: d.Password,
