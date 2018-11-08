@@ -14,7 +14,7 @@ const (
 	testBody = "Test message"
 	testMsg  = "To: " + testTo1 + ", " + testTo2 + "\r\n" +
 		"From: " + testFrom + "\r\n" +
-		"Mime-Version: 1.0\r\n" +
+		"MIME-Version: 1.0\r\n" +
 		"Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
 		"Content-Type: text/plain; charset=UTF-8\r\n" +
 		"Content-Transfer-Encoding: quoted-printable\r\n" +

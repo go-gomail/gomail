@@ -19,8 +19,8 @@ func (m *Message) WriteTo(w io.Writer) (int64, error) {
 }
 
 func (w *messageWriter) writeMessage(m *Message) {
-	if _, ok := m.header["Mime-Version"]; !ok {
-		w.writeString("Mime-Version: 1.0\r\n")
+	if _, ok := m.header["MIME-Version"]; !ok {
+		w.writeString("MIME-Version: 1.0\r\n")
 	}
 	if _, ok := m.header["Date"]; !ok {
 		w.writeHeader("Date", m.FormatDate(now()))

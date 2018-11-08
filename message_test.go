@@ -625,7 +625,7 @@ func stubSendMail(t *testing.T, bCount int, want *message) SendFunc {
 			t.Error(err)
 		}
 		got := buf.String()
-		wantMsg := string("Mime-Version: 1.0\r\n" +
+		wantMsg := string("MIME-Version: 1.0\r\n" +
 			"Date: Wed, 25 Jun 2014 17:46:00 +0000\r\n" +
 			want.content)
 		if bCount > 0 {
