@@ -50,7 +50,7 @@ If you get this error it means the certificate used by the SMTP server is not
 considered valid by the client running Gomail. As a quick workaround you can
 bypass the verification of the server's certificate chain and host name by using
 `SetTLSConfig`:
-
+```go
     package main
 
     import (
@@ -65,7 +65,7 @@ bypass the verification of the server's certificate chain and host name by using
 
         // Send emails using d.
     }
-
+```
 Note, however, that this is insecure and should not be used in production.
 
 
