@@ -27,7 +27,7 @@ func Example() {
 	}
 }
 
-// A daemon that listens to a channel and sends all incoming messages.
+// Example_daemon: A daemon that listens to a channel and sends all incoming messages.
 func Example_daemon() {
 	ch := make(chan *gomail.Message)
 
@@ -71,7 +71,7 @@ func Example_daemon() {
 	close(ch)
 }
 
-// Efficiently send a customized newsletter to a list of recipients.
+// Example_newsletter: Efficiently send a customized newsletter to a list of recipients.
 func Example_newsletter() {
 	// The list of recipients.
 	var list []struct {
@@ -99,7 +99,7 @@ func Example_newsletter() {
 	}
 }
 
-// Send an email using a local SMTP server.
+// Example_noAuth: Send an email using a local SMTP server.
 func Example_noAuth() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "from@example.com")
@@ -113,7 +113,7 @@ func Example_noAuth() {
 	}
 }
 
-// Send an email using an API or postfix.
+// Example_noSMTP: Send an email using an API or postfix.
 func Example_noSMTP() {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "from@example.com")
