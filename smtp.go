@@ -1,6 +1,7 @@
 package gomail
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -12,6 +13,9 @@ import (
 
 // A Dialer is a dialer to an SMTP server.
 type Dialer struct {
+	// ProxyDial specifies the optional dial function for
+	// establishing the transport connection.
+	DialProxy func(ctx context.Context, network, address string) (net.Conn, error)
 	// Host represents the host of the SMTP server.
 	Host string
 	// Port represents the port of the SMTP server.
@@ -39,11 +43,12 @@ type Dialer struct {
 // to the SMTP server.
 func NewDialer(host string, port int, username, password string) *Dialer {
 	return &Dialer{
-		Host:     host,
-		Port:     port,
-		Username: username,
-		Password: password,
-		SSL:      port == 465,
+		DialProxy: (&net.Dialer{}).DialContext,
+		Host:      host,
+		Port:      port,
+		Username:  username,
+		Password:  password,
+		SSL:       port == 465,
 	}
 }
 
@@ -58,7 +63,8 @@ func NewPlainDialer(host string, port int, username, password string) *Dialer {
 // Dial dials and authenticates to an SMTP server. The returned SendCloser
 // should be closed when done using it.
 func (d *Dialer) Dial() (SendCloser, error) {
-	conn, err := netDialTimeout("tcp", addr(d.Host, d.Port), 10*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
+	conn, err := d.DialProxy(ctx, "tcp", addr(d.Host, d.Port))
 	if err != nil {
 		return nil, err
 	}
@@ -182,9 +188,8 @@ func (c *smtpSender) Close() error {
 
 // Stubbed out for tests.
 var (
-	netDialTimeout = net.DialTimeout
-	tlsClient      = tls.Client
-	smtpNewClient  = func(conn net.Conn, host string) (smtpClient, error) {
+	tlsClient     = tls.Client
+	smtpNewClient = func(conn net.Conn, host string) (smtpClient, error) {
 		return smtp.NewClient(conn, host)
 	}
 )
