@@ -99,14 +99,16 @@ const (
 
 // SetHeader sets a value to the given header field.
 func (m *Message) SetHeader(field string, value ...string) {
-	m.encodeHeader(value)
-	m.header[field] = value
+	m.header[field] = m.encodeHeader(value)
 }
 
-func (m *Message) encodeHeader(values []string) {
+func (m *Message) encodeHeader(values []string) []string {
+	encoded := make([]string, len(values))
 	for i := range values {
-		values[i] = m.encodeString(values[i])
+		encoded[i] = m.encodeString(values[i])
 	}
+
+	return encoded
 }
 
 func (m *Message) encodeString(value string) string {
