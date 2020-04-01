@@ -311,6 +311,29 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 	return append(list, f)
 }
 
+func (m *Message) appendStream(list []*file, fileName string, src io.Reader, settings []FileSetting) []*file {
+	f := &file{
+		Name:   filepath.Base(fileName),
+		Header: make(map[string][]string),
+		CopyFunc: func(w io.Writer) error {
+			if _, err := io.Copy(w, src); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+
+	for _, s := range settings {
+		s(f)
+	}
+
+	if list == nil {
+		return []*file{f}
+	}
+
+	return append(list, f)
+}
+
 // Attach attaches the files to the email.
 func (m *Message) Attach(filename string, settings ...FileSetting) {
 	m.attachments = m.appendFile(m.attachments, filename, settings)
@@ -319,4 +342,14 @@ func (m *Message) Attach(filename string, settings ...FileSetting) {
 // Embed embeds the images to the email.
 func (m *Message) Embed(filename string, settings ...FileSetting) {
 	m.embedded = m.appendFile(m.embedded, filename, settings)
+}
+
+// Attach file to a message from a io.Reader object
+func (m *Message) AttachStream(src io.Reader, fileName string, settings ...FileSetting) {
+	m.attachments = m.appendStream(m.attachments, fileName, src, settings)
+}
+
+// Embed file to a message from a io.Reader object
+func (m *Message) EmbedStream(src io.Reader, fileName string, settings ...FileSetting) {
+	m.embedded = m.appendStream(m.embedded, fileName, src, settings)
 }
