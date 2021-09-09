@@ -290,6 +290,59 @@ func TestAttachment(t *testing.T) {
 	testMessage(t, m, 1, want)
 }
 
+func TestDirectAttachmentOnly(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.AttachDirect("test.txt", []byte("Content of test.txt"), "text/plain")
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: text/plain\r\n" +
+			"Content-Disposition: attachment; filename=\"test.txt\"\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.txt")),
+	}
+
+	testMessage(t, m, 0, want)
+}
+
+func TestDirectAttachment(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.SetBody("text/plain", "Test")
+	m.AttachDirect("test.txt", []byte("Content of test.txt"), "text/plain")
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: multipart/mixed;\r\n" +
+			" boundary=_BOUNDARY_1_\r\n" +
+			"\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/plain; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"Test\r\n" +
+			"--_BOUNDARY_1_\r\n" +
+			"Content-Type: text/plain\r\n" +
+			"Content-Disposition: attachment; filename=\"test.txt\"\r\n" +
+			"Content-Transfer-Encoding: base64\r\n" +
+			"\r\n" +
+			base64.StdEncoding.EncodeToString([]byte("Content of test.txt")) + "\r\n" +
+			"--_BOUNDARY_1_--\r\n",
+	}
+
+	testMessage(t, m, 1, want)
+}
+
 func TestRename(t *testing.T) {
 	m := NewMessage()
 	m.SetHeader("From", "from@example.com")
