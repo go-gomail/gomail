@@ -316,6 +316,18 @@ func (m *Message) Attach(filename string, settings ...FileSetting) {
 	m.attachments = m.appendFile(m.attachments, filename, settings)
 }
 
+// Attach data to the e-mail as if it is a file
+func (m *Message) AttachDirect(name string, content []byte, contentType string) {
+	m.Attach(
+		name,
+		SetCopyFunc(func(w io.Writer) error {
+			_, err := w.Write(content)
+			return err
+		}),
+		SetHeader(map[string][]string{"Content-Type": {contentType}}),
+	)
+}
+
 // Embed embeds the images to the email.
 func (m *Message) Embed(filename string, settings ...FileSetting) {
 	m.embedded = m.appendFile(m.embedded, filename, settings)
