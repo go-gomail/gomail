@@ -37,13 +37,13 @@ type Dialer struct {
 
 // NewDialer returns a new SMTP Dialer. The given parameters are used to connect
 // to the SMTP server.
-func NewDialer(host string, port int, username, password string) *Dialer {
+func NewDialer(host string, port int, ssl bool, username, password string) *Dialer {
 	return &Dialer{
 		Host:     host,
 		Port:     port,
 		Username: username,
 		Password: password,
-		SSL:      port == 465,
+		SSL:      port == 465 || ssl,
 	}
 }
 
