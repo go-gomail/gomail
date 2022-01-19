@@ -72,10 +72,15 @@ func (d *Dialer) Dial() (SendCloser, error) {
 		return nil, err
 	}
 
-	if d.LocalName != "" {
-		if err := c.Hello(d.LocalName); err != nil {
-			return nil, err
+	if d.LocalName == "" {
+		atIndex := strings.LastIndex(d.Username, "@")
+		if atIndex >= 0 {
+			d.LocalName = d.Username[atIndex+1:]
 		}
+	}
+
+	if err := c.Hello(d.LocalName); err != nil {
+		return nil, err
 	}
 
 	if !d.SSL {
