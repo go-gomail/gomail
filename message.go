@@ -10,6 +10,7 @@ import (
 
 // Message represents an email.
 type Message struct {
+	settings    []MessageSetting
 	header      header
 	parts       []*part
 	attachments []*file
@@ -35,6 +36,7 @@ func NewMessage(settings ...MessageSetting) *Message {
 		header:   make(header),
 		charset:  "UTF-8",
 		encoding: QuotedPrintable,
+		settings: settings
 	}
 
 	m.applySettings(settings)
@@ -57,6 +59,7 @@ func (m *Message) Reset() {
 	m.parts = nil
 	m.attachments = nil
 	m.embedded = nil
+	m.applySettings(m.settings)
 }
 
 func (m *Message) applySettings(settings []MessageSetting) {
