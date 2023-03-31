@@ -36,7 +36,7 @@ func NewMessage(settings ...MessageSetting) *Message {
 		header:   make(header),
 		charset:  "UTF-8",
 		encoding: QuotedPrintable,
-		settings: settings
+		settings: settings,
 	}
 
 	m.applySettings(settings)
