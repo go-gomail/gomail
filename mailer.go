@@ -1,6 +1,7 @@
 package gomail
 
 import (
+	"bytes"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -124,8 +125,7 @@ func (m *Mailer) Send(msg *Message) error {
 }
 
 func flattenHeader(msg *mail.Message, bcc string) []byte {
-	buf := getBuffer()
-	defer putBuffer(buf)
+	buf := new(bytes.Buffer)
 
 	for field, value := range msg.Header {
 		if field != "Bcc" {

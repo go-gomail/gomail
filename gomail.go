@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"mime"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"gopkg.in/alexcesaro/quotedprintable.v2"
@@ -131,8 +130,7 @@ func (msg *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (msg *Message) FormatAddress(address, name string) string {
-	buf := getBuffer()
-	defer putBuffer(buf)
+	buf := new(bytes.Buffer)
 
 	if !quotedprintable.NeedsEncoding(name) {
 		quote(buf, name)
@@ -313,22 +311,4 @@ func encodeHeader(enc *quotedprintable.HeaderEncoder, value string) string {
 	}
 
 	return enc.Encode(value)
-}
-
-var bufPool = sync.Pool{
-	New: func() interface{} {
-		return new(bytes.Buffer)
-	},
-}
-
-func getBuffer() *bytes.Buffer {
-	return bufPool.Get().(*bytes.Buffer)
-}
-
-func putBuffer(buf *bytes.Buffer) {
-	if buf.Len() > 1024 {
-		return
-	}
-	buf.Reset()
-	bufPool.Put(buf)
 }
